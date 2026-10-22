@@ -1,0 +1,784 @@
+<title>Theorieprüfung Klasse B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one centered column like a Prüfplatz terminal; header strip, question card, answer rows with checkboxes, sticky footer nav */
+:root{
+  --bg:#f3f4f1; --panel:#ffffff; --fg:#1b1f1c; --muted:#5d655f; --line:#d7dbd6;
+  --accent:#0f6b3d; --accent-fg:#ffffff; --warn:#b45309; --bad:#b91c1c; --good:#15803d;
+  --soft:#e6efe9;
+  --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141715; --panel:#1d221f; --fg:#eef1ec; --muted:#9aa49d; --line:#333a35;
+  --accent:#4fbf7f; --accent-fg:#0d1a12; --warn:#f3a94d; --bad:#f07070; --good:#6fd396; --soft:#223027; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141715; --panel:#1d221f; --fg:#eef1ec; --muted:#9aa49d; --line:#333a35;
+  --accent:#4fbf7f; --accent-fg:#0d1a12; --warn:#f3a94d; --bad:#f07070; --good:#6fd396; --soft:#223027; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 32px}
+.wrap{max-width:820px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-block:18px 10px;border-bottom:2px solid var(--accent)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,5vw,38px);margin:0;letter-spacing:.3px;text-transform:uppercase;text-wrap:balance}
+h1 small{display:block;font-family:var(--body);font-weight:600;font-size:13px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+.langbtn{font:600 13px var(--body);letter-spacing:1px;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
+.langbtn:hover,.langbtn:focus-visible{border-color:var(--accent);outline:none}
+section[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin-top:18px}
+.lead{max-width:62ch;color:var(--muted);margin:0 0 14px}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:10px}
+.mode{display:flex;flex-direction:column;gap:6px;text-align:left;border:2px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;padding:18px;cursor:pointer;font:inherit}
+.mode:hover,.mode:focus-visible{border-color:var(--accent);outline:none}
+.mode b{font-family:var(--display);font-size:24px;font-weight:800;text-transform:uppercase}
+.mode span{color:var(--muted);font-size:15px}
+.rules{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:15px}
+.rules li::before{content:"§ ";color:var(--accent);font-weight:600}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:14px;color:var(--muted)}
+.stats b{font-family:var(--display);font-size:22px;color:var(--fg);font-variant-numeric:tabular-nums}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:16px}
+.bar .pts{font-family:var(--display);font-size:20px;color:var(--fg);font-variant-numeric:tabular-nums}
+.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;background:var(--soft);color:var(--accent)}
+.timer{font-variant-numeric:tabular-nums;font-weight:600}
+.timer.low{color:var(--bad)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+.q{font-size:clamp(18px,2.6vw,21px);font-weight:600;margin:14px 0 4px;text-wrap:balance}
+.hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.fig{font-family:var(--display);font-size:15px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;margin:0 0 6px}
+.opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer;background:var(--panel)}
+.opt:hover{border-color:var(--accent)}
+.opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.opt input{width:20px;height:20px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt span{min-width:0}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--panel))}
+.opt.missed{border-color:var(--good);border-style:dashed}
+.exp{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--soft);font-size:15px}
+.exp b{color:var(--accent)}
+.num{font-size:15px;color:var(--muted);margin-top:6px}
+.num input{width:140px;font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;background:var(--panel);color:var(--fg)}
+.nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 16px var(--body);border:1.5px solid var(--accent);background:var(--panel);color:var(--accent);padding:10px 18px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn:hover,.btn:focus-visible{filter:brightness(1.08);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none;box-shadow:none}
+.btn.ghost{border-color:var(--line);color:var(--fg)}
+.verdict{font-family:var(--display);font-size:clamp(34px,7vw,56px);font-weight:800;text-transform:uppercase;line-height:1;margin:0}
+.verdict.pass{color:var(--good)}.verdict.fail{color:var(--bad)}
+.score{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px}
+.score div{border:1px solid var(--line);border-radius:8px;padding:12px}
+.score b{display:block;font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums;line-height:1}
+.score span{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.review{margin-top:18px;display:grid;gap:12px}
+.rv{border-left:4px solid var(--bad);padding:4px 0 4px 14px}
+.rv p{margin:0 0 4px}
+.rv .meta{font-size:13px;color:var(--muted)}
+.rv .ok{color:var(--good);font-weight:600}
+.video{margin-top:14px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#1a1d1b}
+.video canvas{display:block;width:100%;height:auto;max-width:100%}
+.video .cap{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);font-size:15px;font-weight:600;min-height:48px}
+.video .cap button{font:600 13px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;flex:none}
+.rank{display:flex;align-items:center;gap:14px;margin-top:12px;padding:14px;border-radius:10px;background:var(--soft)}
+.rank b{font-family:var(--display);font-size:28px;text-transform:uppercase;line-height:1}
+.rank .lvl{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.rank .track{flex:1;min-width:120px}
+.chapters{display:grid;gap:12px;margin-top:16px}
+.ch{border:1px solid var(--line);border-radius:10px;padding:16px;background:var(--panel)}
+.ch-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
+.ch-head b{font-family:var(--display);font-size:22px;text-transform:uppercase}
+.ch-head .pct{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums;color:var(--accent)}
+.ch-body{margin-top:12px;display:grid;gap:10px}
+.ch-body[hidden]{display:none}
+.cq{border-top:1px solid var(--line);padding-top:10px;font-size:15px}
+.cq .qq{font-weight:600}
+.cq .aa{color:var(--good)}
+.cq .ee{color:var(--muted)}
+.cq .tag{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.mini{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:8px}
+.mini i{display:block;height:100%;background:var(--accent)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.flash{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.flash.show{opacity:1}
+footer{margin-top:28px;font-size:12px;color:var(--muted);max-width:70ch}
+</style>
+
+<div class="wrap">
+<header>
+  <h1><small id="t-sub">Fahrschule · Prüfungssimulator</small>Theorieprüfung Klasse B</h1>
+  <button class="langbtn" id="langbtn" type="button" aria-label="Sprache wechseln">EN</button>
+</header>
+
+<section id="home">
+  <div class="card">
+    <p class="lead" id="t-lead">Wie am echten Prüfplatz bei TÜV oder DEKRA: 30 Fragen, mehrere Antworten können richtig sein, jede Frage zählt 2 bis 5 Fehlerpunkte. Bestanden mit höchstens 10 Fehlerpunkten – aber zwei falsche 5-Punkte-Fragen bedeuten durchgefallen.</p>
+    <div class="rank" id="rank"></div>
+    <div class="modes">
+      <button class="mode" type="button" id="btn-study"><b id="t-m0">Lernen</b><span id="t-m0s">Alle Fragen nach Kapiteln, mit Lernvideos und Erklärungen</span></button>
+      <button class="mode" type="button" id="btn-exam"><b id="t-m1">Prüfung</b><span id="t-m1s">30 Fragen · 45 Minuten · Ergebnis erst am Ende, wie in echt</span></button>
+      <button class="mode" type="button" id="btn-practice"><b id="t-m2">Training</b><span id="t-m2s">Alle Fragen, sofortige Auflösung mit Erklärung</span></button>
+      <button class="mode" type="button" id="btn-weak"><b id="t-m3">Schwachstellen</b><span id="t-m3s">Nur Fragen, die zuletzt falsch waren</span></button>
+    </div>
+    <ul class="rules">
+      <li id="t-r1">Eine Frage ist nur richtig, wenn alle richtigen Antworten angekreuzt sind und keine falsche.</li>
+      <li id="t-r2">Grundstoff (Verkehrsregeln, Vorfahrt, Zeichen, Gefahrenlehre) und Zusatzstoff Klasse B (Pkw-Technik, Anhänger, Sicherheit).</li>
+      <li id="t-r3">Zahlenfragen: Antwort eintippen, z.&nbsp;B. „50“.</li>
+    </ul>
+    <div class="stats" id="stats"></div>
+  </div>
+  <footer id="t-foot">Eigene Übungsfragen nach StVO, StVZO und FeV. Kein offizieller Fragenkatalog – für die echte Prüfung zusätzlich die Fahrschul-App nutzen.</footer>
+</section>
+
+<section id="study" hidden>
+  <div class="card">
+    <p class="lead" id="t-studylead">Jedes Kapitel hat ein Lernvideo und alle Fragen mit Lösung. Grüne Balken zeigen, wie sicher du im Kapitel bist – sie füllen sich durch Training und Prüfungen.</p>
+    <div class="tools"><button class="btn ghost" type="button" id="btn-study-home"></button></div>
+    <div class="chapters" id="chapters"></div>
+  </div>
+</section>
+
+<section id="quiz" hidden>
+  <div class="bar">
+    <span><span class="chip" id="modechip"></span> &nbsp; <span id="counter"></span></span>
+    <span class="timer" id="timer"></span>
+    <span class="pts" id="ptsbox"></span>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+  <div class="card">
+    <p class="fig" id="fig"></p>
+    <p class="q" id="qtext"></p>
+    <p class="hint" id="qhint"></p>
+    <ul class="opts" id="opts"></ul>
+    <div class="num" id="numwrap" hidden><input type="text" id="numin" inputmode="decimal" autocomplete="off"> <span id="unit"></span></div>
+    <div class="exp" id="exp" hidden></div>
+    <div class="video" id="qvideo" hidden><canvas id="qcanvas" width="640" height="360"></canvas><div class="cap"><span id="qcap"></span><button type="button" id="qreplay">↻</button></div></div>
+    <div class="nav">
+      <button class="btn ghost" type="button" id="btn-quit"></button>
+      <span style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" type="button" id="btn-check"></button>
+        <button class="btn primary" type="button" id="btn-next"></button>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section id="result" hidden>
+  <div class="card">
+    <p class="verdict" id="verdict"></p>
+    <p class="lead" id="verdict-sub"></p>
+    <div class="score">
+      <div><b id="s-pts"></b><span id="t-s1">Fehlerpunkte</span></div>
+      <div><b id="s-right"></b><span id="t-s2">richtig</span></div>
+      <div><b id="s-wrong"></b><span id="t-s3">falsch</span></div>
+      <div><b id="s-time"></b><span id="t-s4">Zeit</span></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="nav">
+      <button class="btn ghost" type="button" id="btn-home"></button>
+      <button class="btn primary" type="button" id="btn-again"></button>
+    </div>
+  </div>
+</section>
+</div>
+<div class="flash" id="flash"></div>
+
+<script>
+// ---------- Question bank ----------
+// g = Grundstoff, z = Zusatzstoff B. p = Fehlerpunkte. a = indices of correct options, or {num, unit}.
+const Q = [
+{id:1,t:"g",p:5,fig:["Innerorts, Wohnstraße","Urban residential street"],q:["Ein Ball rollt zwischen parkenden Autos auf die Fahrbahn. Wie verhalten Sie sich?","A ball rolls out between parked cars onto the road. What do you do?"],
+ o:[["Sofort bremsbereit sein und Geschwindigkeit stark verringern","Be ready to brake immediately and slow down sharply"],["Hupen und weiterfahren","Honk and keep going"],["Damit rechnen, dass ein Kind hinterherläuft","Expect that a child may run after it"]],a:[0,2],
+ e:["Kinder sind unberechenbar. Nach einem Ball folgt oft ein Kind – Bremsbereitschaft ist Pflicht (§ 3 Abs. 2a StVO).","Children are unpredictable. A child often follows the ball – you must be ready to brake (§ 3 (2a) StVO)."]},
+{id:2,t:"g",p:4,fig:["Kreuzung ohne Verkehrszeichen","Junction with no signs"],q:["Sie kommen an eine Kreuzung ohne Verkehrszeichen und Ampel. Wer hat Vorfahrt?","You reach a junction with no signs or lights. Who has right of way?"],
+ o:[["Wer von rechts kommt","Whoever comes from the right"],["Wer schneller ist","Whoever is faster"],["Wer auf der breiteren Straße fährt","Whoever is on the wider road"]],a:[0],
+ e:["Rechts vor links gilt überall, wo keine Vorfahrtregelung durch Zeichen oder Ampeln besteht (§ 8 StVO).","Right before left applies wherever no signs or lights regulate priority (§ 8 StVO)."]},
+{id:3,t:"g",p:3,fig:["Vorgeschriebene Höchstgeschwindigkeit","Statutory speed limit"],q:["Wie schnell dürfen Sie innerorts höchstens fahren, wenn nichts anderes angeordnet ist?","What is the maximum speed in built-up areas unless signs say otherwise?"],
+ num:50,unit:["km/h","km/h"],
+ e:["Innerorts gilt 50 km/h als allgemeine Höchstgeschwindigkeit (§ 3 Abs. 3 StVO).","Inside built-up areas the general limit is 50 km/h (§ 3 (3) StVO)."]},
+{id:4,t:"g",p:3,fig:["Landstraße, Pkw","Country road, car"],q:["Wie schnell dürfen Sie mit einem Pkw außerorts auf einer Landstraße höchstens fahren?","What is the maximum speed for a car on a country road outside built-up areas?"],
+ num:100,unit:["km/h","km/h"],
+ e:["Außerorts gilt für Pkw 100 km/h, sofern kein Schild etwas anderes vorschreibt.","Outside built-up areas cars may drive 100 km/h unless signs say otherwise."]},
+{id:5,t:"g",p:3,fig:["Verkehrszeichen 205","Sign 205"],q:["Was bedeutet das dreieckige Schild mit der Spitze nach unten („Vorfahrt gewähren“)?","What does the downward-pointing triangle sign (Give Way) mean?"],
+ o:[["Ich muss dem Querverkehr Vorfahrt gewähren","I must give way to crossing traffic"],["Ich muss immer anhalten","I must always stop"],["Ich darf nur nach rechts abbiegen","I may only turn right"]],a:[0],
+ e:["Zeichen 205: Vorfahrt gewähren. Anhalten ist nur nötig, wenn es die Verkehrslage verlangt. Beim Stoppschild (206) müssen Sie immer anhalten.","Sign 205: Give way. Stopping is only required if traffic demands it. At the Stop sign (206) you must always stop."]},
+{id:6,t:"g",p:4,fig:["Stoppschild","Stop sign"],q:["Sie erreichen ein Stoppschild mit Haltlinie. Was ist richtig?","You arrive at a Stop sign with a stop line. Which is correct?"],
+ o:[["Ich muss an der Haltlinie anhalten, auch wenn kein Verkehr zu sehen ist","I must stop at the line even if no traffic is visible"],["Ich darf langsam rollen, wenn frei ist","I may roll through slowly if clear"],["Ich muss Vorfahrt gewähren","I must give way"]],a:[0,2],
+ e:["Am Stoppschild ist das Anhalten an der Haltlinie Pflicht – immer. Danach Vorfahrt gewähren.","At a Stop sign you must stop at the line – always. Then give way."]},
+{id:7,t:"g",p:3,fig:["Gelbes Blinklicht","Flashing amber light"],q:["Eine Ampel blinkt gelb. Was gilt?","A traffic light is flashing amber. What applies?"],
+ o:[["Die Ampel ist außer Betrieb, es gelten die Verkehrszeichen","The light is out of service; signs apply"],["Ich muss anhalten","I must stop"],["Vorsicht, gegebenenfalls rechts vor links","Caution; right before left if there are no signs"]],a:[0,2],
+ e:["Gelbes Blinklicht bedeutet: Ampel außer Betrieb, besondere Vorsicht. Es gelten Schilder, sonst rechts vor links.","Flashing amber means the light is off; take extra care. Signs apply, otherwise right before left."]},
+{id:8,t:"g",p:4,fig:["Grüner Pfeil (Schild) an roter Ampel","Green arrow sign at red light"],q:["An der roten Ampel ist ein grünes Pfeilschild angebracht. Wann dürfen Sie rechts abbiegen?","A green arrow sign is fixed beside the red light. When may you turn right?"],
+ o:[["Nachdem ich an der Haltlinie angehalten habe und niemand behindert oder gefährdet wird","After stopping at the line, if nobody is obstructed or endangered"],["Sofort ohne anzuhalten","Immediately without stopping"],["Nur wenn Fußgänger nicht queren","Only if no pedestrians are crossing"]],a:[0,2],
+ e:["Grüner Pfeil: erst anhalten, dann abbiegen – nur wenn Fußgänger, Radfahrer und Querverkehr nicht gefährdet werden (§ 37 StVO).","Green arrow: stop first, then turn – only if pedestrians, cyclists and crossing traffic are not endangered (§ 37 StVO)."]},
+{id:9,t:"g",p:3,fig:["Verkehrszeichen 301","Sign 301"],q:["Was zeigt das gelbe Rautenschild mit weißem Rand an?","What does the yellow diamond with a white border indicate?"],
+ o:[["Vorfahrtstraße","Priority road"],["Vorfahrt an der nächsten Kreuzung","Priority at the next junction"],["Parkverbot","No parking"]],a:[1],
+ e:["Zeichen 301: Vorfahrt nur an der nächsten Kreuzung oder Einmündung. Die durchgehende Vorfahrtstraße ist Zeichen 306 (gelbe Raute ohne Spitze).","Sign 301: priority only at the next junction. The continuous priority road is sign 306."]},
+{id:10,t:"g",p:3,fig:["Verkehrszeichen 306","Sign 306"],q:["Sie fahren auf einer Vorfahrtstraße (Zeichen 306). Was ist zu beachten?","You are on a priority road (sign 306). What must you remember?"],
+ o:[["Ich habe an allen Kreuzungen Vorfahrt, bis das Ende angezeigt wird","I have priority at all junctions until the end is signed"],["Außerorts darf ich auf dieser Straße nicht auf der Fahrbahn parken","Outside built-up areas I may not park on the carriageway of this road"],["Ich darf schneller als 50 km/h innerorts fahren","I may exceed 50 km/h in town"]],a:[0,1],
+ e:["Auf Vorfahrtstraßen außerorts ist das Parken auf der Fahrbahn verboten (§ 12 StVO). Die Höchstgeschwindigkeit ändert sich nicht.","On priority roads outside town, parking on the carriageway is prohibited (§ 12 StVO). The speed limit does not change."]},
+{id:11,t:"g",p:4,fig:["Linksabbiegen innerorts","Turning left in town"],q:["Sie wollen links abbiegen. Wie verhalten Sie sich richtig?","You want to turn left. What is correct?"],
+ o:[["Rechtzeitig blinken und zur Mitte einordnen","Signal in good time and move to the middle of the road"],["Entgegenkommende Fahrzeuge durchfahren lassen","Let oncoming vehicles pass"],["Fußgänger auf der Querstraße dürfen warten","Pedestrians on the side street can wait"]],a:[0,1],
+ e:["Beim Abbiegen müssen Sie Fußgänger und Radfahrer, die die Straße queren, durchlassen (§ 9 StVO). Gegenverkehr hat Vorrang.","When turning you must let pedestrians and cyclists cross (§ 9 StVO). Oncoming traffic has priority."]},
+{id:12,t:"g",p:5,fig:["Autobahn, Stau","Motorway, traffic jam"],q:["Auf der Autobahn stockt der Verkehr. Was müssen Sie tun?","Traffic on the motorway comes to a standstill. What must you do?"],
+ o:[["Eine Rettungsgasse bilden, sobald der Verkehr stockt","Form an emergency corridor as soon as traffic slows"],["Den Standstreifen benutzen, um weiterzukommen","Use the hard shoulder to get ahead"],["Warnblinklicht einschalten, um nachfolgende zu warnen","Switch on hazard lights to warn following traffic"]],a:[0,2],
+ e:["Rettungsgasse: auf zwei Spuren zwischen links und rechts; bei drei oder mehr Spuren zwischen der linken und den übrigen Spuren (§ 11 Abs. 2 StVO). Warnblinker darf das Stauende warnen.","Emergency corridor: on two lanes between left and right; with three or more lanes between the left lane and the rest (§ 11 (2) StVO). Hazard lights may warn of the jam end."]},
+{id:13,t:"g",p:3,fig:["Rettungsgasse","Emergency corridor"],q:["Dreispurige Autobahn, Stau. Wo wird die Rettungsgasse gebildet?","Three-lane motorway, jam. Where is the emergency corridor formed?"],
+ o:[["Zwischen der linken und der mittleren Spur","Between the left and middle lanes"],["Zwischen der mittleren und der rechten Spur","Between the middle and right lanes"],["Auf dem Standstreifen","On the hard shoulder"]],a:[0],
+ e:["Merksatz: Rechte Hand – Daumen weg. Alle auf der linken Spur weichen nach links, alle anderen nach rechts.","Rule of thumb: right hand, thumb out. Left lane moves left, everyone else moves right."]},
+{id:14,t:"g",p:4,fig:["Überholen außerorts","Overtaking outside town"],q:["Wann dürfen Sie nicht überholen?","When may you not overtake?"],
+ o:[["Bei unklarer Verkehrslage","When the traffic situation is unclear"],["Wenn der Vordermann bereits blinkt und zum Überholen ausschert","When the vehicle ahead is already signalling and pulling out to overtake"],["Wenn Sie Gegenverkehr behindern würden","If you would obstruct oncoming traffic"]],a:[0,1,2],
+ e:["Alle drei sind Überholverbote nach § 5 StVO: unklare Lage, Gegenverkehr, und wenn Sie selbst überholt werden oder der Vordermann ausschert.","All three prohibit overtaking under § 5 StVO: unclear situation, oncoming traffic, and when the vehicle ahead pulls out."]},
+{id:15,t:"g",p:3,fig:["Verkehrszeichen 276","Sign 276"],q:["Rotes Rundschild mit rotem und schwarzem Pkw. Was ist verboten?","Round red-edged sign with a red and a black car. What is prohibited?"],
+ o:[["Überholen mehrspuriger Kraftfahrzeuge","Overtaking multi-track motor vehicles"],["Überholen von Motorrädern","Overtaking motorcycles"],["Jedes Überholen, auch von Radfahrern","All overtaking, including of cyclists"]],a:[0],
+ e:["Zeichen 276 verbietet das Überholen mehrspuriger Kfz und Krafträder mit Beiwagen. Einspurige Fahrzeuge wie Fahrräder und Solo-Motorräder dürfen überholt werden.","Sign 276 bans overtaking multi-track motor vehicles and sidecar motorcycles. Single-track vehicles (bikes, solo motorcycles) may be overtaken."]},
+{id:16,t:"g",p:4,fig:["Überholen von Radfahrern","Passing cyclists"],q:["Welchen seitlichen Mindestabstand müssen Sie innerorts beim Überholen eines Radfahrers einhalten?","What minimum side clearance must you keep when passing a cyclist in town?"],
+ num:1.5,unit:["m","m"],
+ e:["Innerorts mindestens 1,5 m, außerorts 2 m (§ 5 Abs. 4 StVO seit 2020).","At least 1.5 m in town, 2 m outside (§ 5 (4) StVO since 2020)."]},
+{id:17,t:"g",p:4,fig:["Zebrastreifen","Zebra crossing"],q:["Ein Fußgänger wartet am Zebrastreifen. Was gilt?","A pedestrian is waiting at a zebra crossing. What applies?"],
+ o:[["Ich muss ihm das Überqueren ermöglichen und notfalls warten","I must let them cross, waiting if necessary"],["Ich darf am Zebrastreifen nicht überholen","I may not overtake at the crossing"],["Ich muss nur anhalten, wenn er bereits auf der Fahrbahn ist","I only need to stop if they are already on the road"]],a:[0,1],
+ e:["Wer erkennbar queren will, hat Vorrang (§ 26 StVO). Überholen am Zebrastreifen ist verboten.","Anyone visibly waiting to cross has priority (§ 26 StVO). Overtaking at a zebra crossing is prohibited."]},
+{id:18,t:"g",p:3,fig:["Schulbus mit Warnblinklicht","School bus with hazard lights"],q:["Ein Linienbus hält mit eingeschaltetem Warnblinklicht an der Haltestelle. Was gilt?","A bus is stopped at a bus stop with hazard lights on. What applies?"],
+ o:[["Ich darf nur mit Schrittgeschwindigkeit vorbeifahren","I may pass only at walking pace"],["Der Gegenverkehr muss ebenfalls Schrittgeschwindigkeit fahren","Oncoming traffic must also slow to walking pace"],["Ich darf normal vorbeifahren, wenn niemand aussteigt","I may pass normally if nobody is getting off"]],a:[0,1],
+ e:["Warnblinklicht am haltenden Bus: Schrittgeschwindigkeit für beide Richtungen, Fahrgäste dürfen nicht gefährdet werden (§ 20 Abs. 4 StVO).","Hazard lights on a stopped bus: walking pace in both directions; passengers must not be endangered (§ 20 (4) StVO)."]},
+{id:19,t:"g",p:3,fig:["Verkehrsberuhigter Bereich","Traffic-calmed zone"],q:["Sie fahren in einen verkehrsberuhigten Bereich (blaues Schild mit spielendem Kind). Was gilt?","You enter a traffic-calmed zone (blue sign with playing child). What applies?"],
+ o:[["Schrittgeschwindigkeit","Walking pace"],["Fußgänger dürfen die ganze Straße benutzen","Pedestrians may use the whole street"],["Parken ist nur auf gekennzeichneten Flächen erlaubt","Parking is only allowed in marked spaces"]],a:[0,1,2],
+ e:["Im verkehrsberuhigten Bereich: Schrittgeschwindigkeit, Kinderspiele überall erlaubt, Parken nur auf markierten Flächen (§ 42 StVO, Zeichen 325).","In a traffic-calmed zone: walking pace, children may play anywhere, parking only in marked bays (§ 42 StVO, sign 325)."]},
+{id:20,t:"g",p:4,fig:["Bahnübergang","Level crossing"],q:["Vor einem Bahnübergang mit Andreaskreuz blinkt rotes Licht. Was tun Sie?","Red lights flash at a level crossing with a St Andrew's cross. What do you do?"],
+ o:[["Anhalten und warten, bis das Licht erlischt","Stop and wait until the light goes out"],["Zügig hinüberfahren, wenn kein Zug zu sehen ist","Cross quickly if no train is visible"],["Nicht auf dem Übergang anhalten","Do not stop on the crossing"]],a:[0,2],
+ e:["Rotes Blinklicht am Bahnübergang bedeutet Halt – auch wenn die Schranke noch offen ist (§ 19 StVO).","A red flashing light at a level crossing means stop, even if the barrier is still open (§ 19 StVO)."]},
+{id:21,t:"g",p:3,fig:["Parken","Parking"],q:["Wo ist das Parken verboten?","Where is parking prohibited?"],
+ o:[["Vor Grundstücksein- und -ausfahrten","In front of property entrances and exits"],["Bis zu 5 m vor Fußgängerüberwegen","Up to 5 m before pedestrian crossings"],["Bis zu 10 m vor Kreuzungen","Up to 10 m before junctions"]],a:[0,1],
+ e:["Parkverbot vor Ein-/Ausfahrten und bis 5 m vor Zebrastreifen. An Kreuzungen gilt 5 m ab Schnittpunkt der Fahrbahnkanten (§ 12 StVO).","No parking at entrances and within 5 m of a zebra crossing. At junctions the rule is 5 m from the kerb intersection (§ 12 StVO)."]},
+{id:22,t:"g",p:3,fig:["Halten vs. Parken","Stopping vs. parking"],q:["Ab wann gilt Halten als Parken?","When does stopping count as parking?"],
+ o:[["Wenn Sie das Fahrzeug verlassen","When you leave the vehicle"],["Wenn Sie länger als 3 Minuten halten","When you stop for more than 3 minutes"],["Wenn der Motor läuft","When the engine is running"]],a:[0,1],
+ e:["Parken: länger als 3 Minuten oder Verlassen des Fahrzeugs (§ 12 Abs. 2 StVO).","Parking: longer than 3 minutes or leaving the vehicle (§ 12 (2) StVO)."]},
+{id:23,t:"g",p:4,fig:["Alkohol am Steuer","Alcohol at the wheel"],q:["Welche Promillegrenze gilt für Fahranfänger in der Probezeit und unter 21 Jahren?","What blood-alcohol limit applies to novice drivers on probation and under 21?"],
+ num:0,unit:["Promille","per mille"],
+ e:["Für Fahranfänger in der Probezeit und Fahrer unter 21 gilt 0,0 Promille (§ 24c StVG).","Novice drivers on probation and drivers under 21 must have 0.0 per mille (§ 24c StVG)."]},
+{id:24,t:"g",p:4,fig:["Probezeit","Probationary period"],q:["Wie lange dauert die Probezeit nach dem Ersterwerb der Fahrerlaubnis?","How long is the probation period after first obtaining a licence?"],
+ o:[["2 Jahre","2 years"],["1 Jahr","1 year"],["Sie kann bei einem schweren Verstoß auf 4 Jahre verlängert werden","It can be extended to 4 years after a serious offence"]],a:[0,2],
+ e:["Probezeit 2 Jahre; bei einem A-Verstoß oder zwei B-Verstößen Aufbauseminar und Verlängerung auf 4 Jahre (§ 2a StVG).","Probation lasts 2 years; a serious (A) offence or two minor (B) offences mean a seminar and extension to 4 years (§ 2a StVG)."]},
+{id:25,t:"g",p:3,fig:["Reaktionsweg","Reaction distance"],q:["Faustformel: Wie lang ist der Reaktionsweg bei 50 km/h (1 Sekunde Reaktionszeit)?","Rule of thumb: what is the reaction distance at 50 km/h (1 second reaction time)?"],
+ num:15,unit:["m","m"],
+ e:["Reaktionsweg = (km/h ÷ 10) × 3. Bei 50 km/h: 5 × 3 = 15 m.","Reaction distance = (km/h ÷ 10) × 3. At 50 km/h: 5 × 3 = 15 m."]},
+{id:26,t:"g",p:3,fig:["Bremsweg","Braking distance"],q:["Faustformel: Wie lang ist der normale Bremsweg bei 100 km/h?","Rule of thumb: what is the normal braking distance at 100 km/h?"],
+ num:100,unit:["m","m"],
+ e:["Bremsweg = (km/h ÷ 10)². Bei 100 km/h: 10² = 100 m. Gefahrbremsung: die Hälfte (50 m).","Braking distance = (km/h ÷ 10)². At 100 km/h: 10² = 100 m. Emergency braking: half (50 m)."]},
+{id:27,t:"g",p:4,fig:["Anhalteweg","Stopping distance"],q:["Wie lang ist der Anhalteweg bei 30 km/h nach Faustformel (normale Bremsung)?","What is the stopping distance at 30 km/h by rule of thumb (normal braking)?"],
+ num:18,unit:["m","m"],
+ e:["Reaktionsweg 3 × 3 = 9 m, Bremsweg 3² = 9 m, Anhalteweg 18 m.","Reaction 3 × 3 = 9 m, braking 3² = 9 m, stopping distance 18 m."]},
+{id:28,t:"g",p:4,fig:["Sicherheitsabstand","Safe following distance"],q:["Welcher Abstand zum Vordermann ist außerorts bei 100 km/h mindestens einzuhalten?","What minimum following distance should you keep at 100 km/h outside town?"],
+ o:[["Halber Tacho, also etwa 50 m","Half the speedometer reading, about 50 m"],["2 Sekunden","2 seconds"],["10 m","10 m"]],a:[0,1],
+ e:["Faustregel „halber Tacho“ entspricht etwa 2 Sekunden Abstand – bei 100 km/h rund 50 m.","The half-speedometer rule equals about 2 seconds – roughly 50 m at 100 km/h."]},
+{id:29,t:"g",p:3,fig:["Nebel","Fog"],q:["Wann dürfen Sie die Nebelschlussleuchte einschalten?","When may you switch on the rear fog light?"],
+ o:[["Nur wenn die Sichtweite durch Nebel unter 50 m liegt","Only when visibility in fog is below 50 m"],["Bei jedem Regen","In any rain"],["Dann gilt gleichzeitig höchstens 50 km/h","Then a maximum of 50 km/h applies at the same time"]],a:[0,2],
+ e:["Nebelschlussleuchte erst unter 50 m Sicht; dann nicht schneller als 50 km/h (§ 17 Abs. 3 StVO). Die Leitpfosten stehen 50 m auseinander.","Rear fog light only below 50 m visibility; then no faster than 50 km/h (§ 17 (3) StVO). Delineator posts are 50 m apart."]},
+{id:30,t:"g",p:3,fig:["Sondersignal","Emergency vehicle"],q:["Hinter Ihnen nähert sich ein Fahrzeug mit Blaulicht und Martinshorn. Was tun Sie?","A vehicle with blue light and siren approaches from behind. What do you do?"],
+ o:[["Sofort freie Bahn schaffen, notfalls an den Rand fahren","Make way immediately, pulling to the side if necessary"],["Bei Rot darf ich vorsichtig über die Haltelinie fahren, wenn es gefahrlos möglich ist","At a red light I may carefully cross the stop line if safe"],["Stark beschleunigen, um nicht im Weg zu sein","Accelerate hard to get out of the way"]],a:[0,1],
+ e:["Blaulicht und Horn: sofort Platz machen (§ 38 StVO). Vorsichtiges Überfahren der Haltelinie ist erlaubt, wenn niemand gefährdet wird.","Blue light and siren: make way at once (§ 38 StVO). Carefully crossing the stop line is allowed if nobody is endangered."]},
+{id:31,t:"g",p:3,fig:["Kreisverkehr","Roundabout"],q:["Kreisverkehr mit Zeichen 215 und „Vorfahrt gewähren“. Was ist richtig?","Roundabout with sign 215 and Give Way. What is correct?"],
+ o:[["Der Verkehr im Kreis hat Vorfahrt","Traffic in the roundabout has priority"],["Beim Einfahren muss ich blinken","I must signal when entering"],["Beim Ausfahren muss ich blinken","I must signal when exiting"]],a:[0,2],
+ e:["Im Kreisverkehr hat der Kreisverkehr Vorfahrt. Blinken beim Einfahren ist verboten, beim Verlassen Pflicht (§ 9a StVO).","Traffic in the roundabout has priority. Signalling on entry is prohibited; on exit it is required (§ 9a StVO)."]},
+{id:32,t:"g",p:4,fig:["Verkehrszeichen 274.1","Sign 274.1"],q:["Sie fahren in eine Tempo-30-Zone. Was gilt zusätzlich?","You enter a 30 km/h zone. What else applies?"],
+ o:[["An Kreuzungen gilt in der Regel rechts vor links","Right before left usually applies at junctions"],["Höchstens 30 km/h bis zum Ende der Zone","Maximum 30 km/h until the end of the zone"],["Ich darf Radfahrer nicht überholen","I may not overtake cyclists"]],a:[0,1],
+ e:["In Tempo-30-Zonen gibt es meist keine Vorfahrtschilder: rechts vor links. Das Limit gilt bis zum Aufhebungsschild.","30 zones usually have no priority signs: right before left. The limit lasts until the end sign."]},
+{id:33,t:"g",p:3,fig:["Fahrstreifen mit Blockmarkierung","Lane with solid line"],q:["Zwischen den Fahrstreifen ist eine durchgezogene weiße Linie. Was gilt?","A solid white line separates the lanes. What applies?"],
+ o:[["Ich darf sie nicht überfahren","I may not cross it"],["Ich darf sie überfahren, wenn kein Verkehr ist","I may cross it if there is no traffic"],["Überholen ist erlaubt, wenn ich dabei nicht die Linie berühre","Overtaking is allowed as long as I don't touch the line"]],a:[0,2],
+ e:["Durchgezogene Linie (Zeichen 295) darf nicht überfahren oder befahren werden. Überholen innerhalb der eigenen Spur ist möglich.","A solid line (sign 295) may not be crossed or driven on. Overtaking within your own lane is possible."]},
+{id:34,t:"g",p:4,fig:["Autobahn-Auffahrt","Motorway slip road"],q:["Sie fahren auf die Autobahn auf. Was ist richtig?","You join a motorway. What is correct?"],
+ o:[["Der Verkehr auf der durchgehenden Fahrbahn hat Vorfahrt","Traffic on the through carriageway has priority"],["Ich beschleunige auf dem Beschleunigungsstreifen auf passende Geschwindigkeit","I use the acceleration lane to reach a matching speed"],["Fahrzeuge auf der Autobahn müssen mir Platz machen","Vehicles on the motorway must make room for me"]],a:[0,1],
+ e:["Einfädelnde haben keine Vorfahrt (§ 18 Abs. 3 StVO). Der Beschleunigungsstreifen dient dem Angleichen der Geschwindigkeit.","Merging traffic has no priority (§ 18 (3) StVO). The acceleration lane is for matching speed."]},
+{id:35,t:"g",p:4,fig:["Autobahn-Richtgeschwindigkeit","Motorway advisory speed"],q:["Welche Richtgeschwindigkeit gilt auf deutschen Autobahnen ohne Limit?","What is the advisory speed on German motorways without a limit?"],
+ num:130,unit:["km/h","km/h"],
+ e:["Richtgeschwindigkeit 130 km/h. Wer schneller fährt, kann bei einem Unfall mithaften, auch ohne Schuld.","Advisory speed 130 km/h. Driving faster can mean partial liability in an accident even without fault."]},
+{id:36,t:"g",p:5,fig:["Unfallstelle","Accident scene"],q:["Sie kommen als Erster an eine Unfallstelle mit Verletzten. Was tun Sie?","You are first at an accident with injured people. What do you do?"],
+ o:[["Unfallstelle absichern: Warnblinker, Warnweste, Warndreieck","Secure the scene: hazard lights, hi-vis vest, warning triangle"],["Notruf 112 absetzen und Erste Hilfe leisten","Call 112 and give first aid"],["Weiterfahren, da andere bestimmt helfen","Drive on, others will surely help"]],a:[0,1],
+ e:["Absichern, Notruf, Erste Hilfe. Weiterfahren wäre unterlassene Hilfeleistung (§ 323c StGB). Warndreieck innerorts ca. 50 m, außerorts 100 m, Autobahn 150–200 m.","Secure, call, help. Driving on is failure to render assistance (§ 323c StGB). Triangle: ~50 m in town, 100 m outside, 150–200 m on motorways."]},
+{id:37,t:"g",p:3,fig:["Smartphone","Smartphone"],q:["Dürfen Sie beim Fahren das Smartphone benutzen?","May you use your smartphone while driving?"],
+ o:[["Nur in einer Halterung und ohne es in die Hand zu nehmen","Only in a holder, without picking it up"],["Ja, wenn ich an der roten Ampel stehe und der Motor läuft","Yes, while waiting at a red light with the engine running"],["Ja, wenn der Motor ausgeschaltet ist","Yes, if the engine is switched off"]],a:[0,2],
+ e:["§ 23 Abs. 1a StVO: Nutzung nur ohne Aufnehmen. Bei Start-Stopp-Automatik gilt der Motor nicht als ausgeschaltet.","§ 23 (1a) StVO: use only without picking it up. With automatic start-stop the engine does not count as switched off."]},
+{id:38,t:"g",p:4,fig:["Aquaplaning","Aquaplaning"],q:["Ihr Fahrzeug beginnt bei starkem Regen aufzuschwimmen. Was tun Sie?","Your car starts to aquaplane in heavy rain. What do you do?"],
+ o:[["Kupplung treten, Gas wegnehmen, Lenkung ruhig halten","Depress the clutch, ease off the gas, hold the steering steady"],["Stark bremsen","Brake hard"],["Gegenlenken","Steer against it"]],a:[0],
+ e:["Bei Aquaplaning verlieren die Räder den Kontakt. Nicht bremsen, nicht lenken – Gas weg, auskuppeln, abwarten.","When aquaplaning the tyres lose contact. Don't brake or steer – ease off, clutch in, wait."]},
+{id:39,t:"g",p:3,fig:["Wild","Wildlife"],q:["Außerorts springt ein Reh auf die Straße. Was ist richtig?","A deer leaps onto the road outside town. What is correct?"],
+ o:[["Bremsen, Lenkrad festhalten, nicht ausweichen","Brake, grip the wheel, don't swerve"],["Abblenden und hupen","Dip the lights and honk"],["Ausweichen in den Gegenverkehr","Swerve into oncoming traffic"]],a:[0,1],
+ e:["Ausweichen ist gefährlicher als der Aufprall. Fernlicht blendet das Tier – abblenden, hupen, bremsen.","Swerving is more dangerous than the impact. High beam dazzles the animal – dip, honk, brake."]},
+{id:40,t:"g",p:3,fig:["Fernlicht","High beam"],q:["Wann müssen Sie abblenden?","When must you dip your headlights?"],
+ o:[["Bei Gegenverkehr","With oncoming traffic"],["Wenn Sie dicht hinter einem anderen Fahrzeug fahren","When driving close behind another vehicle"],["Bei ausreichender Straßenbeleuchtung","When street lighting is sufficient"]],a:[0,1,2],
+ e:["Fernlicht darf andere nicht blenden – auch nicht den Vordermann über den Spiegel (§ 17 StVO).","High beam must not dazzle others, including the driver ahead via their mirror (§ 17 StVO)."]},
+{id:41,t:"g",p:3,fig:["Verkehrszeichen 267","Sign 267"],q:["Rundes Schild, roter Rand, weißer Querbalken. Was bedeutet es?","Round sign, red edge, white horizontal bar. What does it mean?"],
+ o:[["Verbot der Einfahrt","No entry"],["Halteverbot","No stopping"],["Sackgasse","Dead end"]],a:[0],
+ e:["Zeichen 267: Verbot der Einfahrt. Das Halteverbot ist blau mit rotem Kreuz (283).","Sign 267: no entry. No stopping is blue with a red cross (283)."]},
+{id:42,t:"g",p:3,fig:["Halteverbot","No stopping"],q:["Blaues Rundschild mit rotem Rand und rotem Kreuz. Was gilt?","Round blue sign with red border and red X. What applies?"],
+ o:[["Absolutes Halteverbot","Absolute no stopping"],["Ich darf kurz zum Ein- und Aussteigen halten","I may stop briefly for passengers to get in or out"],["Eingeschränktes Halteverbot","Restricted no stopping"]],a:[0],
+ e:["Zeichen 283: absolutes Halteverbot, auch nicht zum Ein- und Aussteigen. Das eingeschränkte Halteverbot (286) hat nur einen Schrägstrich.","Sign 283: absolute no stopping, not even for passengers. Restricted no stopping (286) has a single diagonal."]},
+{id:43,t:"g",p:4,fig:["Straßenbahn","Tram"],q:["Eine Straßenbahn hält ohne Haltestelleninsel. Fahrgäste steigen aus. Was tun Sie?","A tram stops without a platform island. Passengers get off. What do you do?"],
+ o:[["Anhalten und warten, bis die Fahrgäste die Fahrbahn verlassen haben","Stop and wait until passengers have left the road"],["Vorsichtig mit Schrittgeschwindigkeit vorbeifahren","Pass carefully at walking pace"],["Hupen, damit die Fahrgäste Platz machen","Honk so passengers move"]],a:[0],
+ e:["Ohne Haltestelleninsel darf rechts nur vorbeigefahren werden, wenn keine Fahrgäste ein- oder aussteigen – sonst warten (§ 20 Abs. 2 StVO).","Without a platform island you may only pass on the right if nobody is boarding or alighting – otherwise wait (§ 20 (2) StVO)."]},
+{id:44,t:"g",p:3,fig:["Verkehrszeichen 123","Sign 123"],q:["Dreieckiges Gefahrzeichen mit Bauarbeiter. Was ist zu erwarten?","Triangular warning sign with a construction worker. What should you expect?"],
+ o:[["Baustelle, verengte Fahrbahn, Arbeiter auf der Straße","Roadworks, narrowed road, workers on the road"],["Verschmutzte oder unebene Fahrbahn","Dirty or uneven surface"],["Überholverbot","No overtaking"]],a:[0,1],
+ e:["Zeichen 123 warnt vor Baustellen: Verengungen, Schmutz, Arbeiter. Ein Überholverbot gilt nur mit eigenem Schild.","Sign 123 warns of roadworks: narrowing, dirt, workers. An overtaking ban applies only with its own sign."]},
+{id:45,t:"g",p:3,fig:["Verkehrszeichen 102","Sign 102"],q:["Gefahrzeichen mit schwarzem Kreuz („Kreuzung mit Vorfahrt von rechts“). Was tun Sie?","Warning sign with a black X (junction, priority from the right). What do you do?"],
+ o:[["Geschwindigkeit verringern und rechts vor links beachten","Slow down and watch for traffic from the right"],["Ich habe Vorfahrt","I have priority"],["Bremsbereit fahren","Drive ready to brake"]],a:[0,2],
+ e:["Zeichen 102 kündigt eine Kreuzung mit rechts vor links an. Vorsicht, von rechts Kommende haben Vorfahrt.","Sign 102 announces a junction with right before left. Traffic from the right has priority."]},
+{id:46,t:"g",p:4,fig:["Einbahnstraße","One-way street"],q:["In einer Einbahnstraße fährt Ihnen ein Radfahrer entgegen. Darf das sein?","A cyclist rides toward you in a one-way street. Is that allowed?"],
+ o:[["Ja, wenn ein Zusatzzeichen „Radfahrer frei“ die Gegenrichtung freigibt","Yes, if a supplementary sign opens it for cyclists"],["Nein, niemals","No, never"],["Ja, Radfahrer dürfen immer gegen Einbahnstraßen fahren","Yes, cyclists may always ride against one-way streets"]],a:[0],
+ e:["Viele Einbahnstraßen sind für Radfahrer in Gegenrichtung freigegeben – darauf beim Abbiegen und Parken achten.","Many one-way streets are open to cyclists in the opposite direction – watch for them when turning and parking."]},
+{id:47,t:"g",p:3,fig:["Kinder","Children"],q:["Welche Eigenschaften von Kindern müssen Sie im Verkehr einkalkulieren?","Which traits of children must you allow for in traffic?"],
+ o:[["Sie können Geschwindigkeit und Entfernung schlecht einschätzen","They judge speed and distance poorly"],["Sie reagieren impulsiv und sind leicht ablenkbar","They react impulsively and are easily distracted"],["Sie sind klein und hinter Autos schwer zu sehen","They are small and hard to see behind cars"]],a:[0,1,2],
+ e:["Alle drei. Deshalb: bei Kindern stets bremsbereit, Geschwindigkeit runter, Blickkontakt suchen.","All three. So: always ready to brake near children, slow down, seek eye contact."]},
+{id:48,t:"g",p:3,fig:["Senioren","Elderly people"],q:["Eine ältere Person steht am Straßenrand und blickt nicht zu Ihnen. Was ist richtig?","An elderly person stands at the kerb without looking at you. What is correct?"],
+ o:[["Damit rechnen, dass sie plötzlich die Straße betritt","Expect them to step out suddenly"],["Geschwindigkeit verringern, bremsbereit sein","Slow down, be ready to brake"],["Hupen, damit sie Sie wahrnimmt","Honk so they notice you"]],a:[0,1],
+ e:["Ältere Menschen sehen und hören schlechter und reagieren langsamer. Hupen kann erschrecken und ist nur bei Gefahr erlaubt.","Elderly people see and hear less well and react slower. Honking can startle and is only allowed in danger."]},
+{id:49,t:"g",p:4,fig:["Gelbe Ampel","Amber light"],q:["Die Ampel springt auf Gelb, als Sie sich mit 50 km/h nähern. Was gilt?","The light turns amber as you approach at 50 km/h. What applies?"],
+ o:[["Anhalten, wenn es noch gefahrlos möglich ist","Stop if it is still safe to do so"],["Gelb bedeutet: vor der Kreuzung auf das nächste Zeichen warten","Amber means: wait before the junction for the next signal"],["Immer Gas geben, um noch durchzukommen","Always accelerate to get through"]],a:[0,1],
+ e:["Gelb: vor der Kreuzung warten (§ 37 StVO). Nur wenn ein Anhalten nicht mehr sicher möglich ist, darf weitergefahren werden.","Amber: wait before the junction (§ 37 StVO). Only if stopping is no longer safe may you continue."]},
+{id:50,t:"g",p:3,fig:["Verkehrszeichen 308","Sign 308"],q:["Blaues Rechteck, weißer Pfeil nach oben dick, roter Pfeil nach unten dünn. Was bedeutet das?","Blue rectangle, thick white arrow up, thin red arrow down. What does it mean?"],
+ o:[["Vorrang vor dem Gegenverkehr","Priority over oncoming traffic"],["Dem Gegenverkehr Vorrang gewähren","Give priority to oncoming traffic"],["Einbahnstraße","One-way street"]],a:[0],
+ e:["Zeichen 308: Vorrang vor dem Gegenverkehr. Das Gegenstück 208 (rund, roter Pfeil groß) heißt: Gegenverkehr hat Vorrang.","Sign 308: priority over oncoming traffic. Its counterpart 208 (round, large red arrow) means oncoming traffic has priority."]},
+// ---- Zusatzstoff Klasse B ----
+{id:51,t:"z",p:3,fig:["Reifen","Tyres"],q:["Welche Mindestprofiltiefe schreibt das Gesetz für Pkw-Reifen vor?","What minimum tread depth does the law require for car tyres?"],
+ num:1.6,unit:["mm","mm"],
+ e:["Gesetzlich 1,6 mm (§ 36 StVZO). Empfohlen: Sommer 3 mm, Winter 4 mm.","Legally 1.6 mm (§ 36 StVZO). Recommended: summer 3 mm, winter 4 mm."]},
+{id:52,t:"z",p:3,fig:["Reifendruck","Tyre pressure"],q:["Was kann zu geringer Reifendruck bewirken?","What can too-low tyre pressure cause?"],
+ o:[["Höherer Kraftstoffverbrauch","Higher fuel consumption"],["Längerer Bremsweg und schlechtere Lenkung","Longer braking distance and worse steering"],["Reifen erhitzt sich und kann platzen","Tyre heats up and can burst"]],a:[0,1,2],
+ e:["Zu wenig Luft: mehr Walkarbeit, Hitze, Verschleiß, Verbrauch. Druck monatlich kalt prüfen.","Too little air: more flexing, heat, wear, consumption. Check pressure monthly when cold."]},
+{id:53,t:"z",p:3,fig:["Winterreifen","Winter tyres"],q:["Wann müssen Sie Winterreifen (Alpine-Symbol) aufgezogen haben?","When must you have winter tyres (Alpine symbol) fitted?"],
+ o:[["Bei winterlichen Straßenverhältnissen wie Glatteis, Schnee, Reif","In wintry road conditions such as ice, snow, frost"],["Vom 1. Oktober bis Ostern","From 1 October until Easter"],["Immer im Winterhalbjahr","Always in the winter half-year"]],a:[0],
+ e:["Deutschland hat eine situative Winterreifenpflicht (§ 2 Abs. 3a StVO): nicht nach Datum, sondern nach Straßenzustand.","Germany has a situational winter-tyre rule (§ 2 (3a) StVO): based on road conditions, not dates."]},
+{id:54,t:"z",p:3,fig:["Kontrollleuchte","Warning light"],q:["Die rote Öldruck-Kontrollleuchte leuchtet während der Fahrt auf. Was tun Sie?","The red oil-pressure warning light comes on while driving. What do you do?"],
+ o:[["Sofort anhalten und Motor abstellen","Stop immediately and switch off the engine"],["Bis zur nächsten Werkstatt weiterfahren","Drive on to the next garage"],["Ölstand prüfen, Ursache klären","Check oil level, find the cause"]],a:[0,2],
+ e:["Rote Lampen bedeuten Gefahr für Fahrzeug oder Insassen. Ohne Öldruck frisst sich der Motor in Minuten fest.","Red lights mean danger to the vehicle or occupants. Without oil pressure the engine seizes within minutes."]},
+{id:55,t:"z",p:4,fig:["ABS","ABS"],q:["Was bewirkt ABS bei einer Gefahrbremsung?","What does ABS do during emergency braking?"],
+ o:[["Verhindert das Blockieren der Räder, Fahrzeug bleibt lenkbar","Prevents wheel lock; the car stays steerable"],["Verkürzt den Bremsweg auf jeder Fahrbahn deutlich","Significantly shortens braking distance on every surface"],["Das Pulsieren im Pedal ist normal – weiter voll bremsen","Pulsing in the pedal is normal – keep braking hard"]],a:[0,2],
+ e:["ABS erhält die Lenkfähigkeit; der Bremsweg wird nicht in jedem Fall kürzer (z. B. auf losem Schotter). Pedal voll durchtreten.","ABS keeps steering control; braking distance is not always shorter (e.g. on loose gravel). Keep the pedal fully down."]},
+{id:56,t:"z",p:3,fig:["ESP","ESC"],q:["Wofür ist das elektronische Stabilitätsprogramm (ESP) zuständig?","What does the electronic stability program (ESP/ESC) do?"],
+ o:[["Es bremst einzelne Räder, um Schleudern zu verhindern","It brakes individual wheels to prevent skidding"],["Es ersetzt den Sicherheitsabstand","It replaces a safe following distance"],["Es kann die Physik nicht außer Kraft setzen","It cannot override physics"]],a:[0,2],
+ e:["ESP hilft in Kurven und bei Ausweichmanövern, hebt aber Haftungsgrenzen nicht auf.","ESP helps in bends and evasive manoeuvres but does not remove the limits of grip."]},
+{id:57,t:"z",p:4,fig:["Sicherheitsgurt","Seat belt"],q:["Wer muss im Pkw angeschnallt sein?","Who must wear a seat belt in a car?"],
+ o:[["Alle Insassen, auch auf den Rücksitzen","All occupants, including rear seats"],["Der Fahrer ist verantwortlich, dass Kinder gesichert sind","The driver is responsible for securing children"],["Nur bei Fahrten außerorts","Only on trips outside town"]],a:[0,1],
+ e:["Gurtpflicht für alle (§ 21a StVO). Kinder unter 12 Jahren und unter 150 cm brauchen einen Kindersitz.","Belts for everyone (§ 21a StVO). Children under 12 and under 150 cm need a child seat."]},
+{id:58,t:"z",p:4,fig:["Kindersitz","Child seat"],q:["Bis zu welchem Alter oder welcher Größe ist ein Kindersitz Pflicht?","Up to what age or height is a child seat mandatory?"],
+ o:[["Bis 12 Jahre oder bis 150 cm Körpergröße","Up to 12 years or 150 cm tall"],["Bis 6 Jahre","Up to 6 years"],["Auf dem Beifahrersitz nie in einer rückwärtsgerichteten Schale bei aktivem Airbag","Never rear-facing on the front seat with an active airbag"]],a:[0,2],
+ e:["§ 21 Abs. 1a StVO: Kindersitz bis 12 Jahre, es sei denn, das Kind ist schon 150 cm groß. Rückwärts gerichtete Sitze nur bei abgeschaltetem Beifahrer-Airbag.","§ 21 (1a) StVO: child seat up to 12 years unless already 150 cm tall. Rear-facing seats only with the passenger airbag off."]},
+{id:59,t:"z",p:3,fig:["Anhänger","Trailer"],q:["Sie fahren mit Pkw und Anhänger außerorts. Wie schnell dürfen Sie in der Regel höchstens fahren?","You drive a car with trailer outside town. What is the usual maximum speed?"],
+ num:80,unit:["km/h","km/h"],
+ e:["Pkw mit Anhänger: 80 km/h auf Landstraßen und Autobahnen; 100 km/h nur mit Tempo-100-Zulassung des Anhängers.","Car with trailer: 80 km/h on country roads and motorways; 100 km/h only with a special trailer approval."]},
+{id:60,t:"z",p:3,fig:["Anhänger, Klasse B","Trailer, class B"],q:["Welche Anhänger dürfen Sie mit Klasse B ziehen?","Which trailers may you tow with a class B licence?"],
+ o:[["Anhänger bis 750 kg zulässiger Gesamtmasse","Trailers up to 750 kg permissible gross mass"],["Schwerere Anhänger, wenn Zugfahrzeug und Anhänger zusammen höchstens 3.500 kg wiegen","Heavier trailers if car and trailer together do not exceed 3,500 kg"],["Jeden Anhänger bis 3.500 kg","Any trailer up to 3,500 kg"]],a:[0,1],
+ e:["Klasse B: Anhänger bis 750 kg immer; schwerer, solange die Kombination 3.500 kg nicht übersteigt. Darüber: B96 oder BE.","Class B: trailers up to 750 kg always; heavier as long as the combination stays under 3,500 kg. Beyond that: B96 or BE."]},
+{id:61,t:"z",p:3,fig:["Ladung","Load"],q:["Wie weit darf Ladung nach hinten über das Fahrzeug hinausragen, bevor sie gekennzeichnet werden muss?","How far may a load project beyond the rear before it must be marked?"],
+ num:1,unit:["m","m"],
+ e:["Ab 1 m Überstand nach hinten: rote Fahne (30 × 30 cm), bei Dunkelheit rote Leuchte und Rückstrahler (§ 22 StVO).","From 1 m rear overhang: red flag (30 × 30 cm), at night a red light and reflector (§ 22 StVO)."]},
+{id:62,t:"z",p:4,fig:["Ladungssicherung","Load securing"],q:["Warum ist die Ladungssicherung so wichtig?","Why is securing the load so important?"],
+ o:[["Bei einer Vollbremsung aus 50 km/h kann ungesicherte Ladung mit vielfachem Gewicht nach vorn schießen","In a full stop from 50 km/h unsecured items can fly forward with many times their weight"],["Verrutschende Ladung verändert das Fahrverhalten","Shifting cargo changes handling"],["Nur bei Lkw vorgeschrieben","Only required for trucks"]],a:[0,1],
+ e:["§ 22 StVO gilt für alle Fahrzeuge. Schwere Gegenstände nach unten und an die Rücksitzlehne, Netz oder Gurte benutzen.","§ 22 StVO applies to all vehicles. Heavy items low and against the seat back; use a net or straps."]},
+{id:63,t:"z",p:3,fig:["Dachlast","Roof load"],q:["Was ändert sich durch eine Dachbox?","What changes with a roof box?"],
+ o:[["Höherer Schwerpunkt, stärkere Seitenwindempfindlichkeit","Higher centre of gravity, more sensitive to crosswind"],["Höherer Kraftstoffverbrauch","Higher fuel consumption"],["Nichts, solange die Box leer ist","Nothing, as long as the box is empty"]],a:[0,1],
+ e:["Auch eine leere Box erhöht Luftwiderstand und Schwerpunkt. Zulässige Dachlast beachten, langsamer in Kurven.","Even an empty box raises drag and centre of gravity. Respect the roof load limit; slower in bends."]},
+{id:64,t:"z",p:4,fig:["Hauptuntersuchung","Roadworthiness inspection"],q:["In welchem Abstand muss ein Pkw zur Hauptuntersuchung (HU)?","How often must a car go for its roadworthiness inspection (HU)?"],
+ o:[["Neuwagen erstmals nach 3 Jahren, danach alle 2 Jahre","New car first after 3 years, then every 2 years"],["Jedes Jahr","Every year"],["Die Plakette am hinteren Kennzeichen zeigt Monat und Jahr der nächsten HU","The sticker on the rear plate shows the month and year of the next HU"]],a:[0,2],
+ e:["HU: 36 Monate nach Erstzulassung, dann alle 24 Monate (§ 29 StVZO). Überziehen kostet Bußgeld.","HU: 36 months after first registration, then every 24 months (§ 29 StVZO). Overrunning means a fine."]},
+{id:65,t:"z",p:3,fig:["Abgas","Exhaust"],q:["Wie fahren Sie umweltschonend?","How do you drive in an environmentally friendly way?"],
+ o:[["Früh hochschalten, niedrige Drehzahl","Shift up early, low revs"],["Vorausschauend fahren, Motor im Stand abstellen","Anticipate, switch off the engine when standing"],["Motor im Winter vor dem Losfahren warmlaufen lassen","Warm the engine up before driving off in winter"]],a:[0,1],
+ e:["Warmlaufen im Stand ist verboten (§ 30 StVO) und schadet dem Motor. Sofort losfahren, sanft belasten.","Idling to warm up is prohibited (§ 30 StVO) and harms the engine. Drive off at once, gently."]},
+{id:66,t:"z",p:3,fig:["Beleuchtung","Lighting"],q:["Was gehört zur Pflicht-Beleuchtungsprüfung vor der Fahrt?","What belongs to the required lighting check before a journey?"],
+ o:[["Abblendlicht, Bremslicht, Blinker, Kennzeichenbeleuchtung","Dipped beam, brake lights, indicators, number-plate light"],["Scheinwerfer auf Verschmutzung prüfen","Check headlights for dirt"],["Nur das Fernlicht","Only high beam"]],a:[0,1],
+ e:["Der Fahrer ist für die Betriebssicherheit verantwortlich (§ 23 StVO). Verschmutzte Scheinwerfer verlieren bis zu 50 % Leuchtkraft.","The driver is responsible for roadworthiness (§ 23 StVO). Dirty headlights lose up to 50 % of output."]},
+{id:67,t:"z",p:3,fig:["Tagfahrlicht","Daytime running lights"],q:["Sie fahren bei Dämmerung nur mit Tagfahrlicht. Was ist das Problem?","You drive at dusk with only daytime running lights. What is the problem?"],
+ o:[["Rücklichter und Kennzeichen sind oft nicht beleuchtet","Rear lights and plate are often not lit"],["Abblendlicht ist bei Dämmerung Pflicht","Dipped beam is required at dusk"],["Nichts, Tagfahrlicht reicht immer","Nothing, DRL is always enough"]],a:[0,1],
+ e:["Tagfahrlicht leuchtet meist nur vorn. Bei Dämmerung, Dunkelheit, Regen oder Nebel: Abblendlicht einschalten (§ 17 StVO).","DRL usually lights only the front. At dusk, dark, rain or fog switch on dipped beam (§ 17 StVO)."]},
+{id:68,t:"z",p:4,fig:["Pannenhilfe","Breakdown"],q:["Panne auf dem Standstreifen der Autobahn. Was ist richtig?","Breakdown on the motorway hard shoulder. What is correct?"],
+ o:[["Warnweste anziehen, Warndreieck mindestens 150 m hinter dem Fahrzeug aufstellen","Put on a hi-vis vest, set the triangle at least 150 m back"],["Alle Insassen hinter die Leitplanke bringen","Get all occupants behind the barrier"],["Im Fahrzeug sitzen bleiben und auf Hilfe warten","Stay in the car and wait for help"]],a:[0,1],
+ e:["Auf der Autobahn nie im Fahrzeug bleiben. Notrufsäulen stehen alle 2 km; Pfeile auf den Leitpfosten zeigen zur nächsten.","Never stay in the car on a motorway. Emergency phones are every 2 km; arrows on the posts point to the nearest."]},
+{id:69,t:"z",p:3,fig:["Warndreieck","Warning triangle"],q:["Welche Ausrüstung muss in jedem Pkw mitgeführt werden?","What equipment must every car carry?"],
+ o:[["Warndreieck","Warning triangle"],["Verbandkasten nach DIN 13164","First-aid kit to DIN 13164"],["Warnweste","Hi-vis vest"]],a:[0,1,2],
+ e:["Warndreieck, Verbandkasten und mindestens eine Warnweste sind Pflicht (§ 53a StVZO). Ein Feuerlöscher ist nicht vorgeschrieben.","Triangle, first-aid kit and at least one hi-vis vest are mandatory (§ 53a StVZO). A fire extinguisher is not required."]},
+{id:70,t:"z",p:3,fig:["Toter Winkel","Blind spot"],q:["Wie prüfen Sie vor dem Spurwechsel den toten Winkel?","How do you check the blind spot before changing lanes?"],
+ o:[["Kurzer Schulterblick in Fahrtrichtung des Spurwechsels","Brief shoulder check toward the new lane"],["Nur Innen- und Außenspiegel genügen","Interior and side mirrors are enough"],["Spiegel richtig einstellen, dann Schulterblick","Adjust mirrors correctly, then shoulder check"]],a:[0,2],
+ e:["Spiegel – Blinker – Schulterblick. Spiegel decken den toten Winkel nicht ab; ein Motorrad verschwindet darin vollständig.","Mirror, signal, shoulder check. Mirrors don't cover the blind spot; a motorcycle disappears in it entirely."]},
+{id:71,t:"z",p:4,fig:["Müdigkeit","Fatigue"],q:["Welche Anzeichen deuten auf Übermüdung hin?","Which signs indicate fatigue?"],
+ o:[["Häufiges Gähnen, brennende Augen","Frequent yawning, burning eyes"],["Sie erinnern sich nicht an die letzten Kilometer","You can't recall the last few kilometres"],["Lautes Radio hilft dagegen zuverlässig","Loud radio reliably helps"]],a:[0,1],
+ e:["Sekundenschlaf ist eine Hauptursache tödlicher Unfälle. Einzig wirksam: Pause und Schlaf, nicht Kaffee oder Radio.","Microsleep is a major cause of fatal crashes. The only remedy: a break and sleep, not coffee or the radio."]},
+{id:72,t:"z",p:3,fig:["Medikamente","Medication"],q:["Sie nehmen ein Medikament, dessen Beipackzettel vor Beeinträchtigung der Fahrtüchtigkeit warnt. Was gilt?","You take a medication whose leaflet warns of impaired driving ability. What applies?"],
+ o:[["Nicht fahren oder zuvor den Arzt fragen","Don't drive, or ask your doctor first"],["Fahren ist erlaubt, da es kein Alkohol ist","Driving is allowed because it isn't alcohol"],["Auch rezeptfreie Mittel können die Fahrtüchtigkeit mindern","Even over-the-counter medicines can impair driving"]],a:[0,2],
+ e:["§ 24a StVG und § 316 StGB gelten auch für Medikamente. Die Fahrtüchtigkeit ist Ihre Verantwortung.","§ 24a StVG and § 316 StGB also cover medication. Fitness to drive is your responsibility."]},
+{id:73,t:"z",p:3,fig:["Fahrzeugpapiere","Vehicle papers"],q:["Welche Dokumente müssen Sie beim Fahren mitführen?","Which documents must you carry when driving?"],
+ o:[["Führerschein","Driving licence"],["Zulassungsbescheinigung Teil I (Fahrzeugschein)","Registration certificate part I"],["Zulassungsbescheinigung Teil II (Fahrzeugbrief)","Registration certificate part II (title)"]],a:[0,1],
+ e:["Führerschein und Fahrzeugschein immer dabei (§ 11 FeV, § 11 FZV). Der Fahrzeugbrief bleibt sicher zu Hause.","Always carry licence and registration part I (§ 11 FeV, § 11 FZV). Part II stays safely at home."]},
+{id:74,t:"z",p:4,fig:["Kurvenfahrt","Cornering"],q:["Wie fahren Sie eine enge Kurve sicher?","How do you take a tight bend safely?"],
+ o:[["Vor der Kurve bremsen, in der Kurve gleichmäßig Gas geben","Brake before the bend, accelerate evenly through it"],["In der Kurve stark bremsen","Brake hard in the bend"],["Blick weit voraus zum Kurvenausgang richten","Look far ahead to the exit of the bend"]],a:[0,2],
+ e:["Langsam hinein, schnell heraus. Bremsen in der Kurve verlagert Gewicht und kann das Heck ausbrechen lassen.","Slow in, fast out. Braking in the bend shifts weight and can make the rear break away."]},
+{id:75,t:"z",p:3,fig:["Begleitetes Fahren","Accompanied driving"],q:["Was gilt beim Begleiteten Fahren ab 17 (BF17)?","What applies to accompanied driving from 17 (BF17)?"],
+ o:[["Nur mit eingetragener Begleitperson fahren","Drive only with a registered accompanying person"],["Die Begleitperson muss mindestens 30 Jahre alt sein und seit 5 Jahren den Führerschein haben","The accompanying person must be at least 30 and have held a licence for 5 years"],["Die Begleitperson darf bis 0,5 Promille haben","The accompanying person may have up to 0.5 per mille"]],a:[0,1],
+ e:["BF17 nach § 48a FeV: Begleiter ab 30, 5 Jahre Führerschein, höchstens 1 Punkt in Flensburg, max. 0,5 Promille – nicht mehr.","BF17 under § 48a FeV: companion aged 30+, 5 years of licence, at most 1 point in Flensburg, max 0.5 per mille – no more."]},
+{id:76,t:"g",p:4,fig:["Punkte in Flensburg","Points in Flensburg"],q:["Ab wie vielen Punkten im Fahreignungsregister wird die Fahrerlaubnis entzogen?","At how many points in the driver-fitness register is the licence withdrawn?"],
+ num:8,unit:["Punkte","points"],
+ e:["Bei 8 Punkten ist der Führerschein weg (§ 4 StVG). Ab 4 Punkten Ermahnung, ab 6 Verwarnung.","At 8 points the licence is gone (§ 4 StVG). Warning letter from 4 points, formal warning from 6."]},
+{id:77,t:"g",p:3,fig:["Umweltzone","Low-emission zone"],q:["Sie fahren in eine Umweltzone ein. Was brauchen Sie?","You enter a low-emission zone. What do you need?"],
+ o:[["Eine Feinstaubplakette der auf dem Zusatzzeichen gezeigten Farbe","A particulate sticker of the colour shown on the supplementary sign"],["Nichts, Umweltzonen gelten nur für Lkw","Nothing, these zones only apply to trucks"],["Einen Dieselmotor","A diesel engine"]],a:[0],
+ e:["Ohne passende Plakette droht ein Bußgeld – unabhängig vom tatsächlichen Schadstoffausstoß.","Without the right sticker you face a fine, regardless of actual emissions."]},
+{id:78,t:"g",p:3,fig:["Einfädeln","Merging"],q:["Zwei Fahrstreifen werden zu einem. Was gilt?","Two lanes merge into one. What applies?"],
+ o:[["Reißverschlussverfahren: erst unmittelbar vor der Engstelle abwechselnd einfädeln","Zipper merge: alternate only right at the bottleneck"],["Wer auf der durchgehenden Spur fährt, muss das Einfädeln ermöglichen","Drivers in the continuing lane must let others merge in turn"],["Frühzeitig einordnen, um den Verkehr nicht aufzuhalten","Merge early to avoid holding up traffic"]],a:[0,1],
+ e:["§ 7 Abs. 4 StVO: Reißverschluss erst an der Engstelle. Frühes Einordnen verlängert den Stau.","§ 7 (4) StVO: zipper merge at the bottleneck. Merging early lengthens the queue."]},
+{id:79,t:"g",p:3,fig:["Radweg","Cycle path"],q:["Sie wollen rechts abbiegen, rechts verläuft ein Radweg. Was ist richtig?","You want to turn right; a cycle path runs on your right. What is correct?"],
+ o:[["Schulterblick nach rechts hinten, Radfahrer durchfahren lassen","Shoulder check to the rear right, let cyclists pass"],["Radfahrer müssen abbiegende Autos durchlassen","Cyclists must let turning cars go"],["Blinker rechtzeitig setzen","Signal in good time"]],a:[0,2],
+ e:["Geradeaus fahrende Radfahrer haben Vorrang vor Rechtsabbiegern (§ 9 Abs. 3 StVO). Toter-Winkel-Unfälle enden oft tödlich.","Cyclists going straight have priority over right-turning cars (§ 9 (3) StVO). Blind-spot collisions are often fatal."]},
+{id:80,t:"g",p:5,fig:["Schulweg","School route"],q:["Vor einer Schule stehen Kinder auf dem Gehweg und drängeln. Wie fahren Sie?","Children are jostling on the pavement in front of a school. How do you drive?"],
+ o:[["Deutlich langsamer, bremsbereit, Abstand zum Gehweg","Much slower, ready to brake, distance from the pavement"],["Normal weiter, die Kinder sind auf dem Gehweg","Carry on normally, the children are on the pavement"],["Damit rechnen, dass ein Kind auf die Fahrbahn gestoßen wird","Expect a child to be pushed onto the road"]],a:[0,2],
+ e:["Gegenüber Kindern gilt besondere Rücksicht (§ 3 Abs. 2a StVO). Gefahr kommt auch vom Gehweg.","Special care is owed to children (§ 3 (2a) StVO). Danger can come from the pavement too."]}
+];
+
+// ---------- Chapters (study mode) + which animated scene explains each ----------
+const CH=[
+ {k:"vorfahrt",n:["Vorfahrt & Kreuzungen","Priority & junctions"],v:"rvl",ids:[2,5,6,9,10,31,34,45,50,78]},
+ {k:"zeichen",n:["Ampeln & Verkehrszeichen","Lights & signs"],v:"pfeil",ids:[7,8,15,32,33,41,42,44,49,77]},
+ {k:"tempo",n:["Geschwindigkeit & Abstand","Speed & distance"],v:"anhalteweg",ids:[3,4,25,26,27,28,35,59]},
+ {k:"gefahr",n:["Gefahrenlehre","Hazard awareness"],v:"ball",ids:[1,17,18,29,38,39,40,43,47,48,80]},
+ {k:"manoever",n:["Überholen, Abbiegen, Spurwechsel","Overtaking, turning, lane changes"],v:"schulter",ids:[11,14,16,46,70,74,79]},
+ {k:"autobahn",n:["Autobahn & Notfall","Motorway & emergencies"],v:"gasse",ids:[12,13,20,30,36,68,69]},
+ {k:"recht",n:["Fahrer, Recht & Probezeit","Driver, law & probation"],v:"bus",ids:[19,21,22,23,24,37,71,72,73,75,76]},
+ {k:"technik",n:["Technik & Ladung","Technology & loads"],v:"aqua",ids:[51,52,53,54,55,56,57,58,60,61,62,63,64,65,66,67]}
+];
+const SCENE_OF={1:"ball",80:"ball",47:"ball",2:"rvl",45:"rvl",32:"rvl",12:"gasse",13:"gasse",17:"zebra",26:"anhalteweg",27:"anhalteweg",25:"anhalteweg",28:"anhalteweg",31:"kreisel",78:"reiss",8:"pfeil",49:"gelb",39:"wild",40:"wild",70:"schulter",79:"schulter",11:"schulter",18:"bus",43:"bus",38:"aqua",74:"aqua",14:"ueberholen",16:"ueberholen",15:"ueberholen"};
+
+// ---------- Scene engine: tiny top-down "driving videos" drawn on canvas ----------
+const SC={};
+function car(c,x,y,w,h,col,ang){c.save();c.translate(x,y);c.rotate(ang||0);c.fillStyle=col;c.beginPath();c.roundRect(-w/2,-h/2,w,h,6);c.fill();c.fillStyle="rgba(180,220,255,.85)";c.fillRect(-w/2+6,-h/2+4,w-12,h*0.22);c.restore()}
+function person(c,x,y,col){c.fillStyle=col;c.beginPath();c.arc(x,y,7,0,7);c.fill();c.fillRect(x-4,y+6,8,14)}
+function roadH(c,y,h,W){c.fillStyle="#3a3d3f";c.fillRect(0,y,W,h);c.fillStyle="#9aa";c.fillRect(0,y-4,W,4);c.fillRect(0,y+h,W,4)}
+function roadV(c,x,w,H){c.fillStyle="#3a3d3f";c.fillRect(x,0,w,H)}
+function dash(c,y,W,off){c.strokeStyle="#eee";c.lineWidth=3;c.setLineDash([24,20]);c.lineDashOffset=-(off||0);c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();c.setLineDash([])}
+function grass(c,W,H){c.fillStyle="#2f5f3a";c.fillRect(0,0,W,H)}
+function text(c,s,x,y,sz){c.fillStyle="#fff";c.font="bold "+(sz||18)+"px 'Barlow Condensed',sans-serif";c.textAlign="center";c.fillText(s,x,y)}
+const E=(t,a,b,d)=>t<=a?0:t>=a+d?1:(t-a)/d;const sm=x=>x*x*(3-2*x);
+const RED="#c43a2e",BLUE="#2f6fc4",WHITE="#e7e7e7",YEL="#e8b923",GRN="#43a85b",GREY="#777";
+
+SC.ball={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,120,120,W);dash(c,180,W,0);
+ [60,150,240,330].forEach(x=>car(c,x,110,70,30,GREY));
+ const bx=240+ 220*sm(E(t,1,2.2)),by=100+ 70*sm(E(t,1,2.2));
+ let carx=t<3?-50+t*120:310+Math.max(0,Math.min(1,(t-3)/1.5))*40;
+ if(t>1.2)car(c,carx,210,74,32,BLUE);
+ c.fillStyle="#ff5a36";c.beginPath();c.arc(bx,by,9,0,7);c.fill();
+ if(t>2.2){const k=E(t,2.2,2);person(c,240+ (bx-240)*k,95+ (by-95)*k,"#ffd36b")}
+ if(t>2.6&&t<6){c.fillStyle="rgba(255,0,0,.5)";c.fillRect(carx-37,196,8,28)}
+ text(c,l?"Ball = Kind kommt gleich hinterher":"Ball = a child is coming next",W/2,40,22);
+ return t<1.2?(l?"Wohnstraße, geparkte Autos links":"Residential street, parked cars"):t<2.6?(l?"Ein Ball rollt auf die Straße":"A ball rolls onto the road"):t<6?(l?"Sofort bremsen – das Kind folgt dem Ball":"Brake at once – the child follows the ball"):(l?"Bremsbereit = Leben gerettet. 5 Fehlerpunkte!":"Ready to brake = life saved. 5 error points!")}};
+SC.rvl={d:8,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,150,100,W);roadV(c,270,100,H);
+ const a=E(t,0,3),b=E(t,4,3);
+ // car from right (priority) moves left across junction
+ car(c,W+40-sm(E(t,1,3))*(W+120),200,74,32,RED);
+ // our car from bottom waits, then goes
+ car(c,320,H+30-sm(E(t,0,1.2))*110-sm(E(t,4.5,2.5))*260,32,74,BLUE,0);
+ if(t>1.5&&t<4.2){text(c,l?"RECHTS kommt zuerst":"RIGHT goes first",W/2,60,30);c.strokeStyle=YEL;c.lineWidth=4;c.beginPath();c.moveTo(430,110);c.lineTo(560,110);c.lineTo(540,95);c.moveTo(560,110);c.lineTo(540,125);c.stroke()}
+ return t<1.5?(l?"Kreuzung ohne Schilder, ohne Ampel":"Junction with no signs, no lights"):t<4.2?(l?"Rechts vor links: das rote Auto hat Vorfahrt":"Right before left: the red car has priority"):(l?"Erst wenn rechts frei ist, fährst du":"Only when the right is clear do you go")}};
+SC.gasse={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,60,240,W);dash(c,140,W);dash(c,220,W);
+ const k=sm(E(t,2,2.5));
+ for(let i=0;i<5;i++){car(c,90+i*120,100-k*22,70,30,i%2?GREY:WHITE);car(c,60+i*120,180+k*22,70,30,i%2?BLUE:GREY);car(c,110+i*120,260+k*22,70,30,i%2?GREY:RED)}
+ if(t>4.5){const x=-80+(t-4.5)*200;car(c,x,140,90,34,"#fff");c.fillStyle=t%0.3<0.15?"#2b7cff":"#ff2b2b";c.fillRect(x-6,120,12,8)}
+ if(t>2)text(c,l?"Links ← Gasse → Rechts":"Left ← corridor → right",W/2,38,24);
+ return t<2?(l?"Dreispurige Autobahn, Stau":"Three-lane motorway, jam"):t<4.5?(l?"Linke Spur nach links, alle anderen nach rechts":"Left lane goes left, everyone else right"):(l?"Rettungsgasse zwischen linker und mittlerer Spur":"Emergency corridor between left and middle lane")}};
+SC.zebra={d:8,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,120,140,W);for(let i=0;i<7;i++){c.fillStyle="#eee";c.fillRect(300,125+i*20,70,12)}
+ const stop=200;const x=-60+Math.min(t*110,stop+60);car(c,x,225,74,32,BLUE);
+ if(t<2.8){c.fillStyle="rgba(255,0,0,.5)";}
+ person(c,335,100,"#ffd36b");
+ if(t>3){const k=sm(E(t,3,3));person(c,335,100+k*170,"#ffd36b")}
+ if(t>2.3&&t<3){c.fillStyle="rgba(255,0,0,.6)";c.fillRect(x-37,212,8,28)}
+ return t<2.3?(l?"Fußgänger wartet erkennbar am Zebrastreifen":"Pedestrian clearly waiting at the crossing"):t<3?(l?"Anhalten – nicht erst, wenn er auf der Straße ist":"Stop – not only when they're already on the road"):t<6?(l?"Warten, bis er drüben ist. Überholen hier verboten":"Wait until across. No overtaking here"):(l?"§ 26 StVO: Vorrang für Fußgänger":"§ 26 StVO: pedestrians have priority")}};
+SC.anhalteweg={d:10,f:(c,t,W,H,l)=>{c.fillStyle="#22262a";c.fillRect(0,0,W,H);text(c,l?"Anhalteweg = Reaktionsweg + Bremsweg":"Stopping = reaction + braking",W/2,40,24);
+ [[30,9,9],[50,15,25],[100,30,100]].forEach(([v,r,b],i)=>{const y=90+i*85;const k=sm(E(t,0.5+i*2.5,2));const s=4;
+  text(c,v+" km/h",60,y+8,20);c.fillStyle=YEL;c.fillRect(110,y-12,r*s*k,24);c.fillStyle=RED;c.fillRect(110+r*s*k,y-12,b*s*k,24);
+  if(k>0.99){text(c,r+" m",110+r*s/2,y+6,15);text(c,b+" m",110+r*s+b*s/2,y+6,15);text(c,"= "+(r+b)+" m",110+(r+b)*s+45,y+7,18)}});
+ c.fillStyle=YEL;c.fillRect(110,330,20,12);text(c,l?"Reaktion (km/h÷10)×3":"Reaction (km/h÷10)×3",230,341,15);c.fillStyle=RED;c.fillRect(360,330,20,12);text(c,l?"Bremsen (km/h÷10)²":"Braking (km/h÷10)²",470,341,15);
+ return t<8?(l?"Doppelte Geschwindigkeit = vierfacher Bremsweg":"Double the speed = four times the braking distance"):(l?"Gefahrbremsung: Bremsweg halbieren":"Emergency braking: halve the braking distance")}};
+SC.kreisel={d:10,f:(c,t,W,H,l)=>{grass(c,W,H);c.fillStyle="#3a3d3f";c.beginPath();c.arc(320,180,120,0,7);c.fill();c.fillStyle="#2f5f3a";c.beginPath();c.arc(320,180,55,0,7);c.fill();roadV(c,300,40,70);c.fillStyle="#3a3d3f";c.fillRect(300,290,40,70);c.fillRect(0,160,210,40);c.fillRect(430,160,210,40);
+ // circulating car
+ const a1=t*1.4;car(c,320+88*Math.cos(a1),180+88*Math.sin(a1),60,28,RED,a1+Math.PI/2);
+ // our car enters from bottom after yielding
+ const w=E(t,0,1.5),g=E(t,3.5,2),e=E(t,5.5,2.5);
+ let x=320,y=H+30-sm(w)*70,ang=0;
+ if(g>0){const an=Math.PI/2-sm(g)*Math.PI/2*1.0;x=320+88*Math.cos(an);y=180+88*Math.sin(an);ang=an+Math.PI/2}
+ if(e>0){x=320+88+sm(e)*220;y=180;ang=Math.PI/2}
+ car(c,x,y,28,60,BLUE,ang);
+ if(e>0&&e<1&&(t%0.5<0.25)){c.fillStyle=YEL;c.beginPath();c.arc(x+10,y-20,6,0,7);c.fill()}
+ return t<3.5?(l?"Im Kreis hat Vorfahrt, wer drin ist. Kein Blinker beim Einfahren":"Traffic in the circle has priority. No signal on entry"):t<5.5?(l?"Lücke abwarten, dann rein":"Wait for a gap, then go"):(l?"Beim Verlassen: rechts blinken (Pflicht)":"On exit: signal right (mandatory)")}};
+SC.reiss={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,120,140,W);c.fillStyle="#2f5f3a";c.beginPath();c.moveTo(420,120);c.lineTo(W,120);c.lineTo(W,190);c.lineTo(520,190);c.closePath();c.fill();c.fillStyle="#f80";for(let i=0;i<4;i++){c.fillRect(430+i*25,118+i*17,10,10)}
+ dash(c,190,420);
+ for(let i=0;i<4;i++){const x0=40+i*110,xt=x0+t*55;const top=i%2===0;const y=top?(xt<400?155:155+Math.min(1,(xt-400)/120)*70):225;car(c,xt,y,66,30,top?BLUE:RED)}
+ text(c,l?"REISSVERSCHLUSS":"ZIPPER MERGE",W/2,60,30);
+ return t<3?(l?"Fahrstreifen endet erst vorne – beide Spuren bis dahin nutzen":"Lane ends ahead – use both lanes until then"):(l?"An der Engstelle abwechselnd: blau, rot, blau, rot":"At the bottleneck alternate: blue, red, blue, red")}};
+SC.pfeil={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,0,110,W);roadV(c,280,110,H);c.fillStyle="#eee";c.fillRect(280,135,110,6);
+ c.fillStyle="#222";c.fillRect(400,120,30,80);c.fillStyle=RED;c.beginPath();c.arc(415,135,10,0,7);c.fill();c.fillStyle="#333";c.beginPath();c.arc(415,160,10,0,7);c.fill();c.beginPath();c.arc(415,185,10,0,7);c.fill();
+ c.fillStyle="#111";c.fillRect(435,150,30,30);c.fillStyle=GRN;c.beginPath();c.moveTo(442,165);c.lineTo(460,165);c.lineTo(452,157);c.moveTo(460,165);c.lineTo(452,173);c.fill();c.strokeStyle=GRN;c.lineWidth=3;c.beginPath();c.moveTo(442,165);c.lineTo(460,165);c.stroke();
+ const stop=E(t,0,2),w=E(t,2,1.5),g=E(t,3.5,2.5);
+ let x=335,y=H+30-sm(stop)*(H+30-175),ang=0;
+ if(g>0){const an=sm(g);x=335+an*220;y=175-an*120;ang=an*Math.PI/2}
+ car(c,x,y,30,66,BLUE,ang);
+ if(t>1&&t<3.5)person(c,300,70,"#ffd36b");
+ return t<2?(l?"Rot + grüner Pfeil: erst an der Haltlinie ANHALTEN":"Red + green arrow: first STOP at the line"):t<3.5?(l?"Schauen: Fußgänger? Querverkehr? Radfahrer?":"Check: pedestrians? crossing traffic? cyclists?"):(l?"Dann vorsichtig rechts abbiegen":"Then turn right carefully")}};
+SC.gelb={d:8,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,0,110,W);roadV(c,280,110,H);c.fillStyle="#eee";c.fillRect(280,135,110,6);
+ c.fillStyle="#222";c.fillRect(400,120,30,80);const ph=t<1.5?0:t<4?1:2;[RED,YEL,GRN].forEach((col,i)=>{c.fillStyle=ph===i?col:"#333";c.beginPath();c.arc(415,135+i*25,10,0,7);c.fill()});
+ const y=H+30-Math.min(t*90,H+30-180);car(c,335,y,30,66,BLUE);
+ if(t>1.5&&t<4){c.fillStyle="rgba(255,0,0,.6)";c.fillRect(322,y+26,26,8)}
+ return t<1.5?(l?"Grün – du näherst dich mit 50 km/h":"Green – you approach at 50 km/h"):t<4?(l?"Gelb = Anhalten, wenn es noch sicher geht":"Amber = stop if still safe to do so"):(l?"Gelb ist kein 'Gas geben'. Vor der Kreuzung warten":"Amber doesn't mean accelerate. Wait before the junction")}};
+SC.wild={d:9,f:(c,t,W,H,l)=>{c.fillStyle="#102a18";c.fillRect(0,0,W,H);roadH(c,130,110,W);dash(c,185,W,t*60);
+ const x=120;car(c,x,210,74,32,BLUE);
+ // headlight cone
+ c.fillStyle=t<4?"rgba(255,255,200,.18)":"rgba(255,255,200,.08)";c.beginPath();c.moveTo(x+37,200);c.lineTo(t<4?W:x+260,t<4?120:170);c.lineTo(t<4?W:x+260,t<4?300:250);c.closePath();c.fill();
+ const dk=sm(E(t,1.5,2));const dx=430,dy=60+dk*90;c.fillStyle="#8a5a2b";c.beginPath();c.ellipse(dx,dy,22,12,0,0,7);c.fill();c.fillRect(dx+14,dy-16,8,14);c.fillRect(dx-18,dy+8,4,14);c.fillRect(dx+12,dy+8,4,14);
+ if(t>3.5&&t<7){c.fillStyle="rgba(255,0,0,.6)";c.fillRect(x-37,196,8,28)}
+ if(t>4)text(c,l?"ABBLENDEN · HUPEN · BREMSEN · GERADEAUS":"DIP · HONK · BRAKE · STRAIGHT",W/2,320,26);
+ return t<3.5?(l?"Nachts außerorts: ein Reh am Straßenrand":"At night outside town: a deer at the roadside"):t<7?(l?"Fernlicht aus (sonst erstarrt es), hupen, voll bremsen":"High beam off (or it freezes), honk, brake hard"):(l?"NIE ausweichen – der Baum ist tödlicher als das Reh":"NEVER swerve – the tree is deadlier than the deer")}};
+SC.schulter={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,100,160,W);dash(c,180,W,t*80);
+ const sw=sm(E(t,4.5,2));car(c,260,220-sw*80,74,32,BLUE);
+ const mx=140+Math.min(t,4)*10;c.fillStyle="#111";c.fillRect(mx-18,132,36,14);c.fillStyle="#ff9d2e";c.beginPath();c.arc(mx-2,139,8,0,7);c.fill();
+ if(t>1.5&&t<4.5){c.strokeStyle=RED;c.lineWidth=3;c.beginPath();c.moveTo(223,235);c.lineTo(100,135);c.lineTo(190,100);c.closePath();c.stroke();text(c,l?"TOTER WINKEL":"BLIND SPOT",130,90,20)}
+ if(t>3&&t<4.5)text(c,l?"→ SCHULTERBLICK":"→ SHOULDER CHECK",W/2,320,26);
+ return t<1.5?(l?"Du willst nach links wechseln. Spiegel: alles frei?":"You want to go left. Mirrors: all clear?"):t<4.5?(l?"Im Spiegel unsichtbar: ein Motorrad schräg hinter dir":"Invisible in the mirror: a motorcycle just behind you"):(l?"Spiegel – Blinker – Schulterblick – dann erst wechseln":"Mirror – signal – shoulder check – only then move")}};
+SC.bus={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,110,160,W);dash(c,190,W);c.fillStyle="#555";c.fillRect(380,80,200,34);
+ c.fillStyle="#e8c200";c.fillRect(400,122,170,44);if(t%0.8<0.4){c.fillStyle="#ff9d2e";c.fillRect(398,124,8,8);c.fillRect(564,124,8,8);c.fillRect(398,158,8,8);c.fillRect(564,158,8,8)}
+ const k=sm(E(t,1.5,3));person(c,420+k*60,170+k*60,"#ffd36b");
+ const sp=t<1.5?90:18;car(c,-40+Math.min(t,1.5)*90+Math.max(0,t-1.5)*sp,235,74,32,BLUE);car(c,W+40-Math.min(t,1.5)*90-Math.max(0,t-1.5)*sp,150,74,32,RED);
+ if(t>1.5)text(c,l?"SCHRITTGESCHWINDIGKEIT – beide Richtungen":"WALKING PACE – both directions",W/2,50,24);
+ return t<1.5?(l?"Bus hält mit Warnblinklicht an der Haltestelle":"Bus stopped at the stop with hazard lights"):(l?"§ 20 StVO: Schrittgeschwindigkeit, auch für den Gegenverkehr":"§ 20 StVO: walking pace, oncoming traffic too")}};
+SC.aqua={d:9,f:(c,t,W,H,l)=>{c.fillStyle="#1d2a36";c.fillRect(0,0,W,H);roadH(c,110,160,W);dash(c,190,W,t*90);c.fillStyle="rgba(120,170,255,.25)";c.fillRect(300,110,340,160);
+ for(let i=0;i<30;i++){c.fillStyle="rgba(200,220,255,.5)";c.fillRect((i*73+t*300)%W,(i*41)%H,2,10)}
+ const drift=t>2.5&&t<6?Math.sin(t*3)*6:0;car(c,320,210+drift,74,32,BLUE,drift*0.02);
+ if(t>2.5&&t<6)text(c,l?"KUPPLUNG · GAS WEG · LENKUNG HALTEN":"CLUTCH · OFF THE GAS · HOLD STEERING",W/2,60,24);
+ return t<2.5?(l?"Starkregen, Spurrillen voller Wasser":"Heavy rain, ruts full of water"):t<6?(l?"Die Reifen schwimmen auf – Lenkung wird leicht":"The tyres float – steering goes light"):(l?"Nicht bremsen, nicht lenken. Abwarten, bis Grip zurück ist":"Don't brake, don't steer. Wait for grip to return")}};
+SC.ueberholen={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,110,160,W);dash(c,190,W,t*70);
+ const k=sm(E(t,1,2)),k2=sm(E(t,4.5,2));car(c,300,235,74,32,GREY);
+ const x=150+k*0+k2*260,y=235-k*80+k2*80;car(c,x,y,74,32,BLUE);
+ const ox=t>2.5?W+60-(t-2.5)*140:W+60;car(c,ox,150,74,32,RED,0);
+ if(t>1&&t<4.5){c.fillStyle="rgba(255,255,255,.9)";c.font="bold 18px 'Barlow Condensed'";c.textAlign="center";c.fillText(l?"frei? Gegenverkehr? Kuppe?":"clear? oncoming? crest?",W/2,60)}
+ return t<1?(l?"Hinter einem langsamen Fahrzeug auf der Landstraße":"Behind a slow vehicle on a country road"):t<4.5?(l?"Nur überholen bei freier Sicht und ohne Gegenverkehr":"Only overtake with clear view and no oncoming traffic"):(l?"Rot kommt! Zügig abschließen, wieder einscheren":"Red is coming! Finish quickly and pull back in")}};
+
+const players={};
+function play(canvas,capEl,id){
+  if(players[canvas.id])cancelAnimationFrame(players[canvas.id].raf);
+  const s=SC[id];if(!s)return;const c=canvas.getContext("2d"),W=canvas.width,H=canvas.height;let t0=performance.now();
+  const loop=now=>{const t=(now-t0)/1000;c.clearRect(0,0,W,H);const cap=s.f(c,Math.min(t,s.d),W,H,lang==="de");if(capEl)capEl.textContent=cap||"";
+    if(t<s.d)players[canvas.id].raf=requestAnimationFrame(loop)};
+  players[canvas.id]={raf:requestAnimationFrame(loop)};
+}
+
+// ---------- Mastery ----------
+function mastery(){return store.get("m",{})}
+function recordAnswer(id,ok){const m=mastery();const r=m[id]||{r:0,w:0};ok?r.r++:r.w++;m[id]=r;store.set("m",m)}
+function qScore(id){const r=mastery()[id];if(!r)return 0;return Math.max(0,Math.min(1,(r.r-r.w*0.5)/3))}
+function chScore(ch){return ch.ids.reduce((a,id)=>a+qScore(id),0)/ch.ids.length}
+function total(){return CH.reduce((a,c)=>a+chScore(c),0)/CH.length}
+const RANKS=[[0,["Fahranfänger","Rookie"]],[.2,["Lernfahrer","Learner"]],[.4,["Verkehrsprofi","Road-aware"]],[.6,["Vorfahrtmeister","Priority master"]],[.8,["Prüfungsreif","Exam-ready"]],[.95,["Fahrlehrer-Niveau","Instructor level"]]];
+function renderRank(){const p=total();const l=li(lang);let r=RANKS[0];RANKS.forEach(x=>{if(p>=x[0])r=x});
+ $("rank").innerHTML="<div><div class=\"lvl\"></div><b></b></div><div class=\"track\"><div class=\"mini\"><i></i></div></div><div class=\"lvl\"></div>";
+ $("rank").querySelector(".lvl").textContent=L("rankL");$("rank").querySelector("b").textContent=r[1][l];
+ $("rank").querySelector("i").style.width=Math.round(p*100)+"%";$("rank").querySelectorAll(".lvl")[1].textContent=Math.round(p*100)+" % "+L("mastered")}
+
+// ---------- Study page ----------
+function renderStudy(){const l=li(lang);const box=$("chapters");box.innerHTML="";$("t-studylead").textContent=L("studylead");$("btn-study-home").textContent=L("home");
+ CH.forEach((ch,ci)=>{const d=document.createElement("div");d.className="ch";const p=Math.round(chScore(ch)*100);
+  d.innerHTML="<div class=\"ch-head\"><b></b><span class=\"pct\"></span></div><div class=\"mini\"><i></i></div><div class=\"ch-body\" hidden><div class=\"video\"><canvas width=\"640\" height=\"360\"></canvas><div class=\"cap\"><span></span><button type=\"button\">▶</button></div></div><div class=\"qs\"></div></div>";
+  d.querySelector("b").textContent=ch.n[l];d.querySelector(".pct").textContent=p+" %";d.querySelector(".mini i").style.width=p+"%";
+  const body=d.querySelector(".ch-body"),cv=d.querySelector("canvas"),cap=d.querySelector(".cap span");cv.id="chc"+ci;
+  d.querySelector(".ch-head").onclick=()=>{body.hidden=!body.hidden;if(!body.hidden)play(cv,cap,ch.v)};
+  d.querySelector(".cap button").onclick=()=>play(cv,cap,ch.v);
+  const qs=d.querySelector(".qs");
+  ch.ids.forEach(id=>{const q=Q.find(x=>x.id===id);if(!q)return;const e=document.createElement("div");e.className="cq";
+   const ans=q.num!==undefined?q.num+" "+q.unit[l]:q.a.map(i=>"✓ "+q.o[i][l]).join("  ");
+   e.innerHTML="<div class=\"tag\"></div><div class=\"qq\"></div><div class=\"aa\"></div><div class=\"ee\"></div>";
+   e.querySelector(".tag").textContent=q.fig[l]+" · "+fmt(L("pts"),q.p)+(SCENE_OF[q.id]?" · ▶":"");e.querySelector(".qq").textContent=q.q[l];e.querySelector(".aa").textContent=ans;e.querySelector(".ee").textContent=q.e[l];
+   if(SCENE_OF[q.id]){e.style.cursor="pointer";e.title=L("playVid");e.onclick=()=>{play(cv,cap,SCENE_OF[q.id]);cv.scrollIntoView({behavior:"smooth",block:"center"})}}
+   qs.appendChild(e)});
+  box.appendChild(d)})}
+// ---------- i18n ----------
+const T = {
+ de:{sub:"Fahrschule · Prüfungssimulator",lead:"Wie am echten Prüfplatz bei TÜV oder DEKRA: 30 Fragen, mehrere Antworten können richtig sein, jede Frage zählt 2 bis 5 Fehlerpunkte. Bestanden mit höchstens 10 Fehlerpunkten – aber zwei falsche 5-Punkte-Fragen bedeuten durchgefallen.",
+  m1:"Prüfung",m1s:"30 Fragen · 45 Minuten · Ergebnis erst am Ende, wie in echt",m2:"Training",m2s:"Alle Fragen, sofortige Auflösung mit Erklärung",m3:"Schwachstellen",m3s:"Nur Fragen, die zuletzt falsch waren",
+  r1:"Eine Frage ist nur richtig, wenn alle richtigen Antworten angekreuzt sind und keine falsche.",r2:"Grundstoff (Verkehrsregeln, Vorfahrt, Zeichen, Gefahrenlehre) und Zusatzstoff Klasse B (Pkw-Technik, Anhänger, Sicherheit).",r3:"Zahlenfragen: Antwort eintippen, z. B. „50“.",
+  foot:"Eigene Übungsfragen nach StVO, StVZO und FeV. Kein offizieller Fragenkatalog – für die echte Prüfung zusätzlich die Fahrschul-App nutzen.",
+  exam:"Prüfung",practice:"Training",weak:"Schwachstellen",of:"Frage %1 von %2",pts:"%1 Fehlerpunkte",multi:"Mehrere Antworten können richtig sein",single:"Zahl eingeben",quit:"Abbrechen",check:"Prüfen",next:"Weiter",finish:"Abgeben",
+  pass:"Bestanden",fail:"Nicht bestanden",passSub:"Du bleibst unter 10 Fehlerpunkten. So sieht es aus, wenn man den Grundstoff drauf hat.",failPts:"Mehr als 10 Fehlerpunkte. Schau dir unten an, wo es gehakt hat.",fail55:"Zwei 5-Punkte-Fragen falsch – das ist auch mit nur 10 Punkten ein Durchfallen. Die Gefahrenfragen sind die wichtigsten.",
+  s1:"Fehlerpunkte",s2:"richtig",s3:"falsch",s4:"Zeit",home:"Startseite",again:"Nochmal",rvWrong:"Deine Antwort: %1",rvRight:"Richtig: %1",none:"Keine Antwort",allRight:"Alles richtig. Keine Frage zum Nachsehen.",
+  noWeak:"Noch keine Schwachstellen gespeichert – erst Training oder Prüfung machen.",statLast:"letzte Prüfung",statBest:"beste Prüfung",statWeak:"offene Schwachstellen",timeUp:"Zeit abgelaufen – Prüfung wird abgegeben.",
+  figL:"Situation", m0:"Lernen",m0s:"Alle Fragen nach Kapiteln, mit Lernvideos und Erklärungen",rankL:"Dein Rang",mastered:"gemeistert",playVid:"Video abspielen",
+  studylead:"Jedes Kapitel hat ein Lernvideo und alle Fragen mit Lösung. Grüne Balken zeigen, wie sicher du im Kapitel bist – sie füllen sich durch Training und Prüfungen. Fragen mit ▶ haben ein eigenes Video: antippen.",vidWhy:"So geht's richtig:"},
+ en:{sub:"Driving school · exam simulator",lead:"Just like the real TÜV or DEKRA terminal: 30 questions, several answers can be correct, each question carries 2 to 5 error points. You pass with at most 10 error points – but two wrong 5-point questions means a fail.",
+  m1:"Exam",m1s:"30 questions · 45 minutes · result only at the end, like the real thing",m2:"Practice",m2s:"All questions, instant answer with explanation",m3:"Weak spots",m3s:"Only questions you got wrong last time",
+  r1:"A question only counts if every correct answer is ticked and no wrong one.",r2:"Core material (rules, priority, signs, hazards) plus class B material (car technology, trailers, safety).",r3:"Number questions: type the answer, e.g. “50”.",
+  foot:"Original practice questions based on StVO, StVZO and FeV. Not the official catalogue – use the driving-school app as well before the real exam.",
+  exam:"Exam",practice:"Practice",weak:"Weak spots",of:"Question %1 of %2",pts:"%1 error points",multi:"Several answers can be correct",single:"Enter a number",quit:"Quit",check:"Check",next:"Next",finish:"Submit",
+  pass:"Passed",fail:"Failed",passSub:"You stayed under 10 error points. That is what knowing the material looks like.",failPts:"More than 10 error points. See below where it went wrong.",fail55:"Two 5-point questions wrong – that is a fail even at 10 points. The hazard questions matter most.",
+  s1:"error points",s2:"correct",s3:"wrong",s4:"time",home:"Home",again:"Again",rvWrong:"Your answer: %1",rvRight:"Correct: %1",none:"No answer",allRight:"All correct. Nothing to review.",
+  noWeak:"No weak spots saved yet – do a practice or exam run first.",statLast:"last exam",statBest:"best exam",statWeak:"open weak spots",timeUp:"Time is up – the exam is being submitted.",
+  figL:"Situation", m0:"Study",m0s:"Every question by chapter, with lesson videos and explanations",rankL:"Your rank",mastered:"mastered",playVid:"Play video",
+  studylead:"Each chapter has a lesson video and every question with its solution. Green bars show how solid you are in a chapter – they fill up through practice and exams. Questions marked ▶ have their own video: tap one.",vidWhy:"How it's done:"},
+};
+let lang="de";
+const L=k=>T[lang][k];
+const fmt=(s,...v)=>v.reduce((a,x,i)=>a.replace("%"+(i+1),x),s);
+const li=lang=>lang==="de"?0:1;
+
+// ---------- Storage ----------
+const store={get(k,d){try{const v=localStorage.getItem("fs-"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("fs-"+k,JSON.stringify(v))}catch(e){}}};
+
+// ---------- State ----------
+let mode,set,idx,answers,start,timerId,checked;
+const $=id=>document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  ["sub","lead","m0","m0s","m1","m1s","m2","m2s","m3","m3s","r1","r2","r3","foot","s1","s2","s3","s4"].forEach(k=>{const el=$("t-"+k);if(el)el.textContent=L(k)});
+  $("langbtn").textContent=lang==="de"?"EN":"DE";
+  $("btn-quit").textContent=L("quit");$("btn-check").textContent=L("check");
+  $("btn-home").textContent=L("home");$("btn-again").textContent=L("again");
+  renderStats();renderRank();
+  if(!$("quiz").hidden)renderQ();
+  if(!$("study").hidden)renderStudy();
+}
+$("langbtn").onclick=()=>{lang=lang==="de"?"en":"de";store.set("lang",lang);applyLang()};
+
+function renderStats(){
+  const last=store.get("last",null),best=store.get("best",null),weak=store.get("weak",[]);
+  const s=$("stats");s.innerHTML="";
+  const add=(v,l)=>{const d=document.createElement("div");d.innerHTML="<b></b> "+l;d.querySelector("b").textContent=v;s.appendChild(d)};
+  if(last!==null)add(fmt(L("pts"),last),L("statLast"));
+  if(best!==null)add(fmt(L("pts"),best),L("statBest"));
+  add(weak.length,L("statWeak"));
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function begin(m){
+  mode=m;checked=false;
+  if(m==="exam"){
+    // real exam: 20 Grundstoff + 10 Zusatzstoff
+    const g=shuffle(Q.filter(q=>q.t==="g")).slice(0,20),z=shuffle(Q.filter(q=>q.t==="z")).slice(0,10);
+    set=shuffle(g.concat(z));
+  }else if(m==="weak"){
+    const w=store.get("weak",[]);set=shuffle(Q.filter(q=>w.includes(q.id)));
+    if(!set.length){flash(L("noWeak"));return}
+  }else set=shuffle(Q.slice());
+  idx=0;answers=set.map(()=>null);start=Date.now();
+  $("home").hidden=true;$("result").hidden=true;$("quiz").hidden=false;
+  $("modechip").textContent=L(m);
+  clearInterval(timerId);
+  if(m==="exam"){tick();timerId=setInterval(tick,1000)}else $("timer").textContent="";
+  renderQ();window.scrollTo(0,0);
+}
+function tick(){
+  const left=45*60-Math.floor((Date.now()-start)/1000);
+  const t=$("timer");t.textContent=String(Math.floor(Math.max(0,left)/60)).padStart(2,"0")+":"+String(Math.max(0,left)%60).padStart(2,"0");
+  t.classList.toggle("low",left<300);
+  if(left<=0){clearInterval(timerId);flash(L("timeUp"));finish()}
+}
+
+function renderQ(){
+  const q=set[idx],l=li(lang);
+  $("counter").textContent=fmt(L("of"),idx+1,set.length);
+  $("ptsbox").textContent=fmt(L("pts"),q.p);
+  $("prog").style.width=((idx)/set.length*100)+"%";
+  $("fig").textContent=L("figL")+": "+q.fig[l];
+  $("qtext").textContent=q.q[l];
+  $("exp").hidden=true;$("exp").innerHTML="";$("qvideo").hidden=true;
+  const opts=$("opts");opts.innerHTML="";
+  const saved=answers[idx];
+  if(q.num!==undefined){
+    $("qhint").textContent=L("single");
+    $("numwrap").hidden=false;opts.hidden=true;
+    $("numin").value=saved??"";$("unit").textContent=q.unit[l];$("numin").disabled=false;
+    $("numin").oninput=()=>{answers[idx]=$("numin").value;updateNav()};
+  }else{
+    $("qhint").textContent=L("multi");
+    $("numwrap").hidden=true;opts.hidden=false;
+    q.o.forEach((o,i)=>{
+      const liEl=document.createElement("li"),lab=document.createElement("label");lab.className="opt";
+      const cb=document.createElement("input");cb.type="checkbox";cb.id="opt"+q.id+"_"+i;cb.checked=!!(saved&&saved.includes(i));
+      cb.onchange=()=>{const cur=new Set(answers[idx]||[]);cb.checked?cur.add(i):cur.delete(i);answers[idx]=[...cur];updateNav()};
+      const sp=document.createElement("span");sp.textContent=o[l];
+      lab.append(cb,sp);liEl.appendChild(lab);opts.appendChild(liEl);
+    });
+  }
+  checked=false;
+  if(mode!=="exam"&&saved!==null&&saved!==undefined&&answers[idx]!==null&&set[idx]._shown)reveal();
+  updateNav();
+}
+function updateNav(){
+  const last=idx===set.length-1;
+  const n=$("btn-next"),c=$("btn-check");
+  if(mode==="exam"){c.hidden=true;n.textContent=last?L("finish"):L("next");n.disabled=false}
+  else{c.hidden=checked;n.textContent=last?L("finish"):L("next");n.disabled=!checked;
+    const a=answers[idx];c.disabled=!(a!==null&&a!==undefined&&(Array.isArray(a)?a.length:String(a).trim().length))}
+}
+function isRight(q,a){
+  if(a===null||a===undefined)return false;
+  if(q.num!==undefined){const v=parseFloat(String(a).replace(",","."));return Math.abs(v-q.num)<0.01}
+  const s=[...a].sort().join(",");return s===q.a.slice().sort().join(",");
+}
+function reveal(){
+  const q=set[idx],l=li(lang),a=answers[idx];checked=true;set[idx]._shown=true;
+  if(q.num!==undefined){$("numin").disabled=true}
+  else{[...$("opts").querySelectorAll(".opt")].forEach((el,i)=>{
+    const chosen=a&&a.includes(i),corr=q.a.includes(i);
+    el.querySelector("input").disabled=true;
+    if(chosen&&corr)el.classList.add("right");else if(chosen&&!corr)el.classList.add("wrong");else if(corr)el.classList.add("missed");
+  })}
+  const ok=isRight(q,a),e=$("exp");e.hidden=false;
+  e.innerHTML="<b></b> "+(q.num!==undefined?"<span class=\"ans\"></span><br>":"")+"<span class=\"txt\"></span>";
+  e.querySelector("b").textContent=(ok?"✓ ":"✗ ")+(ok?L("pass"):fmt(L("pts"),q.p));
+  if(q.num!==undefined)e.querySelector(".ans").textContent=fmt(L("rvRight"),q.num+" "+q.unit[l]);
+  e.querySelector(".txt").textContent=q.e[l];
+  markWeak(q.id,!ok);recordAnswer(q.id,ok);
+  const vid=$("qvideo");if(!ok&&SCENE_OF[q.id]){vid.hidden=false;play($("qcanvas"),$("qcap"),SCENE_OF[q.id]);vid.scrollIntoView({behavior:"smooth",block:"nearest"})}else vid.hidden=true;
+  updateNav();
+}
+$("qreplay").onclick=()=>{const q=set[idx];if(SCENE_OF[q.id])play($("qcanvas"),$("qcap"),SCENE_OF[q.id])};
+function markWeak(id,wrong){let w=store.get("weak",[]);if(wrong&&!w.includes(id))w.push(id);if(!wrong)w=w.filter(x=>x!==id);store.set("weak",w)}
+
+$("btn-check").onclick=reveal;
+$("btn-next").onclick=()=>{if(idx===set.length-1)finish();else{idx++;renderQ();window.scrollTo(0,0)}};
+$("btn-quit").onclick=()=>{clearInterval(timerId);goHome()};
+$("btn-home").onclick=goHome;
+$("btn-again").onclick=()=>begin(mode);
+$("btn-exam").onclick=()=>begin("exam");$("btn-practice").onclick=()=>begin("practice");$("btn-weak").onclick=()=>begin("weak");
+function goHome(){$("quiz").hidden=true;$("result").hidden=true;$("study").hidden=true;$("home").hidden=false;renderStats();renderRank();window.scrollTo(0,0)}
+
+function finish(){
+  clearInterval(timerId);
+  const l=li(lang);let pts=0,right=0,fives=0;const wrong=[];
+  set.forEach((q,i)=>{const ok=isRight(q,answers[i]);if(ok)right++;else{pts+=q.p;if(q.p===5)fives++;wrong.push([q,answers[i]])}
+    if(mode==="exam"){markWeak(q.id,!ok);recordAnswer(q.id,ok)}});
+  const passed=pts<=10&&fives<2;
+  if(mode==="exam"){store.set("last",pts);const b=store.get("best",null);if(b===null||pts<b)store.set("best",pts)}
+  $("quiz").hidden=true;$("result").hidden=false;
+  const v=$("verdict");v.textContent=passed?L("pass"):L("fail");v.className="verdict "+(passed?"pass":"fail");
+  $("verdict-sub").textContent=passed?L("passSub"):(fives>=2?L("fail55"):L("failPts"));
+  $("s-pts").textContent=pts;$("s-right").textContent=right;$("s-wrong").textContent=wrong.length;
+  const sec=Math.floor((Date.now()-start)/1000);$("s-time").textContent=Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+  const r=$("review");r.innerHTML="";
+  if(!wrong.length){const p=document.createElement("p");p.className="lead";p.textContent=L("allRight");r.appendChild(p)}
+  wrong.forEach(([q,a])=>{
+    const d=document.createElement("div");d.className="rv";
+    const t=document.createElement("p");t.innerHTML="<b></b>";t.querySelector("b").textContent=q.q[l];
+    const m=document.createElement("p");m.className="meta";
+    let yours=L("none");
+    if(a!==null&&a!==undefined&&(Array.isArray(a)?a.length:String(a).trim()))yours=q.num!==undefined?a:a.map(i=>q.o[i][l]).join(" · ");
+    m.textContent=fmt(L("rvWrong"),yours)+"  ·  "+fmt(L("pts"),q.p);
+    const c=document.createElement("p");c.className="ok";c.textContent=fmt(L("rvRight"),q.num!==undefined?q.num+" "+q.unit[l]:q.a.map(i=>q.o[i][l]).join(" · "));
+    const e=document.createElement("p");e.className="meta";e.textContent=q.e[l];
+    d.append(t,m,c,e);
+    if(SCENE_OF[q.id]){const v=document.createElement("div");v.className="video";const cv=document.createElement("canvas");cv.width=640;cv.height=360;cv.id="rv"+q.id;
+      const cap=document.createElement("div");cap.className="cap";const sp=document.createElement("span");sp.textContent=L("vidWhy");const b=document.createElement("button");b.type="button";b.textContent="▶";
+      b.onclick=()=>play(cv,sp,SCENE_OF[q.id]);cap.append(sp,b);v.append(cv,cap);d.appendChild(v);setTimeout(()=>play(cv,sp,SCENE_OF[q.id]),100)}
+    r.appendChild(d);
+  });
+  window.scrollTo(0,0);
+}
+function flash(msg){const f=$("flash");f.textContent=msg;f.classList.add("show");setTimeout(()=>f.classList.remove("show"),2600)}
+
+$("btn-study").onclick=()=>{$("home").hidden=true;$("study").hidden=false;renderStudy();window.scrollTo(0,0)};
+$("btn-study-home").onclick=()=>{$("study").hidden=true;$("home").hidden=false;renderRank();renderStats();window.scrollTo(0,0)};
+lang=store.get("lang","de");applyLang();
+</script>
