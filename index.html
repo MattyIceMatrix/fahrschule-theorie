@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Theorieprüfung Klasse B</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
@@ -106,10 +111,12 @@ section[hidden]{display:none}
 footer{margin-top:28px;font-size:12px;color:var(--muted);max-width:70ch}
 </style>
 
+</head>
+<body>
 <div class="wrap">
 <header>
   <h1><small id="t-sub">Fahrschule · Prüfungssimulator</small>Theorieprüfung Klasse B</h1>
-  <button class="langbtn" id="langbtn" type="button" aria-label="Sprache wechseln">EN</button>
+  <button class="langbtn" id="langbtn" type="button" aria-label="Sprache wechseln, zurzeit Deutsch">EN</button>
 </header>
 
 <section id="home">
@@ -454,7 +461,7 @@ function roadV(c,x,w,H){c.fillStyle="#3a3d3f";c.fillRect(x,0,w,H)}
 function dash(c,y,W,off){c.strokeStyle="#eee";c.lineWidth=3;c.setLineDash([24,20]);c.lineDashOffset=-(off||0);c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();c.setLineDash([])}
 function grass(c,W,H){c.fillStyle="#2f5f3a";c.fillRect(0,0,W,H)}
 function text(c,s,x,y,sz){c.fillStyle="#fff";c.font="bold "+(sz||18)+"px 'Barlow Condensed',sans-serif";c.textAlign="center";c.fillText(s,x,y)}
-const E=(t,a,b,d)=>t<=a?0:t>=a+d?1:(t-a)/d;const sm=x=>x*x*(3-2*x);
+const E=(t,a,d)=>t<=a?0:t>=a+d?1:(t-a)/d;const sm=x=>x*x*(3-2*x);
 const RED="#c43a2e",BLUE="#2f6fc4",WHITE="#e7e7e7",YEL="#e8b923",GRN="#43a85b",GREY="#777";
 
 SC.ball={d:9,f:(c,t,W,H,l)=>{grass(c,W,H);roadH(c,120,120,W);dash(c,180,W,0);
@@ -600,6 +607,7 @@ const T = {
   r1:"Eine Frage ist nur richtig, wenn alle richtigen Antworten angekreuzt sind und keine falsche.",r2:"Grundstoff (Verkehrsregeln, Vorfahrt, Zeichen, Gefahrenlehre) und Zusatzstoff Klasse B (Pkw-Technik, Anhänger, Sicherheit).",r3:"Zahlenfragen: Antwort eintippen, z. B. „50“.",
   foot:"Eigene Übungsfragen nach StVO, StVZO und FeV. Kein offizieller Fragenkatalog – für die echte Prüfung zusätzlich die Fahrschul-App nutzen.",
   exam:"Prüfung",practice:"Training",weak:"Schwachstellen",of:"Frage %1 von %2",pts:"%1 Fehlerpunkte",multi:"Mehrere Antworten können richtig sein",single:"Zahl eingeben",quit:"Abbrechen",check:"Prüfen",next:"Weiter",finish:"Abgeben",
+  langaria:"Sprache wechseln, zurzeit Deutsch",
   pass:"Bestanden",fail:"Nicht bestanden",passSub:"Du bleibst unter 10 Fehlerpunkten. So sieht es aus, wenn man den Grundstoff drauf hat.",failPts:"Mehr als 10 Fehlerpunkte. Schau dir unten an, wo es gehakt hat.",fail55:"Zwei 5-Punkte-Fragen falsch – das ist auch mit nur 10 Punkten ein Durchfallen. Die Gefahrenfragen sind die wichtigsten.",
   s1:"Fehlerpunkte",s2:"richtig",s3:"falsch",s4:"Zeit",home:"Startseite",again:"Nochmal",rvWrong:"Deine Antwort: %1",rvRight:"Richtig: %1",none:"Keine Antwort",allRight:"Alles richtig. Keine Frage zum Nachsehen.",
   noWeak:"Noch keine Schwachstellen gespeichert – erst Training oder Prüfung machen.",statLast:"letzte Prüfung",statBest:"beste Prüfung",statWeak:"offene Schwachstellen",timeUp:"Zeit abgelaufen – Prüfung wird abgegeben.",
@@ -610,6 +618,7 @@ const T = {
   r1:"A question only counts if every correct answer is ticked and no wrong one.",r2:"Core material (rules, priority, signs, hazards) plus class B material (car technology, trailers, safety).",r3:"Number questions: type the answer, e.g. “50”.",
   foot:"Original practice questions based on StVO, StVZO and FeV. Not the official catalogue – use the driving-school app as well before the real exam.",
   exam:"Exam",practice:"Practice",weak:"Weak spots",of:"Question %1 of %2",pts:"%1 error points",multi:"Several answers can be correct",single:"Enter a number",quit:"Quit",check:"Check",next:"Next",finish:"Submit",
+  langaria:"Switch language, currently English",
   pass:"Passed",fail:"Failed",passSub:"You stayed under 10 error points. That is what knowing the material looks like.",failPts:"More than 10 error points. See below where it went wrong.",fail55:"Two 5-point questions wrong – that is a fail even at 10 points. The hazard questions matter most.",
   s1:"error points",s2:"correct",s3:"wrong",s4:"time",home:"Home",again:"Again",rvWrong:"Your answer: %1",rvRight:"Correct: %1",none:"No answer",allRight:"All correct. Nothing to review.",
   noWeak:"No weak spots saved yet – do a practice or exam run first.",statLast:"last exam",statBest:"best exam",statWeak:"open weak spots",timeUp:"Time is up – the exam is being submitted.",
@@ -632,6 +641,7 @@ function applyLang(){
   document.documentElement.lang=lang;
   ["sub","lead","m0","m0s","m1","m1s","m2","m2s","m3","m3s","r1","r2","r3","foot","s1","s2","s3","s4"].forEach(k=>{const el=$("t-"+k);if(el)el.textContent=L(k)});
   $("langbtn").textContent=lang==="de"?"EN":"DE";
+  $("langbtn").setAttribute("aria-label",L("langaria"));
   $("btn-quit").textContent=L("quit");$("btn-check").textContent=L("check");
   $("btn-home").textContent=L("home");$("btn-again").textContent=L("again");
   renderStats();renderRank();
@@ -782,3 +792,5 @@ $("btn-study").onclick=()=>{$("home").hidden=true;$("study").hidden=false;render
 $("btn-study-home").onclick=()=>{$("study").hidden=true;$("home").hidden=false;renderRank();renderStats();window.scrollTo(0,0)};
 lang=store.get("lang","de");applyLang();
 </script>
+</body>
+</html>
